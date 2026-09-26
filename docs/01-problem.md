@@ -3,7 +3,7 @@ doc_id: FLG-PRB-001
 title: FloodGauge problem statement
 project: FloodGauge
 doc_type: Problem statement
-version: "0.2"
+version: "0.3"
 status: Draft
 date: '2026-09-25'
 author: Amish Chadha
@@ -17,6 +17,10 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Populate to TRL 2 (users, context, constraints, prior work, open questions)
+- version: "0.3"
+  date: '2026-09-25'
+  author: Amish Chadha
+  change: TRL 3 update; budget treatment and design direction per FLG-DDR-001 (adopted for TRL 3 pending Amish's review); open questions updated from FLG-CAL-001
 ---
 
 # FloodGauge problem statement
@@ -34,7 +38,7 @@ Street flooding has two common causes, and a useful gauge must see both:
 1. **The drain backs up.** Rain exceeds pipe capacity, or the outfall is submerged, so water rises inside the catch basin and then out through the grate.
 2. **The inlet is blocked.** Leaves, litter or sediment cover the grate, so water ponds in the gutter while the basin below stays nearly empty.
 
-A sensor inside the basin sees the first case early and misses the second. A sensor over the gutter sees the second but only once water is already on the street. FloodGauge therefore proposes one node with two ranging heads (see FLG-PRC-001).
+A sensor inside the basin sees the first case early and misses the second. A sensor over the gutter sees the second but only once water is already on the street. FloodGauge therefore uses one node with two ranging heads (FLG-DDR-001 D2, adopted for TRL 3 pending Amish's review; see FLG-PRC-001).
 
 ## Users and context
 
@@ -55,7 +59,7 @@ Operating context (assumed, to be confirmed with partners):
 
 ## Constraints
 
-- Garage-buildable prototype, about $150 USD budget in `project.yaml` (see REVIEW.md for the proposed treatment of the shared FieldNode cost).
+- Garage-buildable prototype: FloodGauge-specific parts within the $150 USD budget in `project.yaml`, with the shared FieldNode core ($126.00) costed in its own repo (FLG-DDR-001 D1, adopted for TRL 3 pending Amish's review). FLG-CAL-001 gives $145.50.
 - Builds on the lab's FieldNode core for enclosure, power and radio, so FloodGauge designs only its sensing heads, mounting and alert logic.
 - Levels only: no camera, no microphone, no images or audio leave the device.
 - No drilling of the road surface; any work in the catch basin is done from the surface without entering it.
@@ -77,10 +81,11 @@ Operating context (assumed, to be confirmed with partners):
 
 ## Open questions
 
-- [ ] Which alert depths do local crews and residents want? The proposed 150 mm and 300 mm bands follow NWS guidance but are not validated locally.
+- [ ] Which alert depths do local crews and residents want? The default 150 mm and 300 mm bands follow NWS guidance but are not validated locally; in a fast flood the first alert arrives at about 190 to 250 mm (FLG-CAL-001).
 - [ ] Who owns the alert service and the duty to act on an alert?
 - [ ] Can a cable be run from the catch basin to the pole, or does the drain head need its own node?
-- [ ] Is an arm over the gutter allowed by the road authority, given vehicle clearance and parked cars?
+- [ ] Is an arm over the gutter allowed by the road authority, and at what height? At 2.95 m it is inside the envelope of a 4 m truck at the curb (FLG-CAL-001).
+- [ ] Which pilot partner and city? (FLG-DDR-001 O1, awaiting Amish.)
 - [ ] What does the pilot city's LoRaWAN coverage look like at street level near inlets?
 
 ## User research and co-design

@@ -1,14 +1,14 @@
 # FloodGauge
 
-![TRL 2](https://img.shields.io/badge/TRL-2%20of%209-0F766E) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-111827) ![Software: MIT](https://img.shields.io/badge/software-MIT-111827)
+![TRL 3](https://img.shields.io/badge/TRL-3%20of%209-0F766E) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-111827) ![Software: MIT](https://img.shields.io/badge/software-MIT-111827)
 
-**Area:** Smart Cities · **TRL:** 2 of 9 (concept formulated) · **Prototype budget:** about $150 USD · **Difficulty:** 2 of 5
+**Area:** Smart Cities · **TRL:** 3 of 9 (proof of concept on paper) · **Prototype budget:** $150 USD for FloodGauge-specific parts (FieldNode costed separately) · **Difficulty:** 2 of 5
 
 A street and drain water level sensor using ultrasonic or radar ranging, warning residents and crews when drains back up or streets begin to flood.
 
 ![FloodGauge concept](media/hero.png)
 
-[Interactive 3D model](media/viewer.html) · [Concept blueprint (PDF)](media/concept-blueprint.pdf) · [Review note](docs/REVIEW.md)
+[Interactive 3D model](media/viewer.html) · [Concept blueprint (PDF)](media/concept-blueprint.pdf) · [General arrangement (PDF)](cad/drawings/FLG-DWG-001.pdf) · [Calculations](docs/04-calcs/01-sizing.md) · [Review note](docs/REVIEW.md)
 
 ## Concept rationale
 
@@ -63,12 +63,12 @@ Full design precis: [docs/02-concept.md](docs/02-concept.md)
 ## Key components
 
 - FieldNode core (enclosure, 6 W solar panel, LiFePO4 cell, LoRaWAN radio), shared with other lab projects
-- Street head: 60 GHz radar on a short arm over the gutter (proposed)
-- Drain head: waterproof ultrasonic ranger with wet probe, in a slotted stilling tube inside the catch basin (proposed)
+- Street head: 60 GHz radar on a short arm over the gutter, lens 2.95 m above the road or higher where clearance rules require
+- Drain head: waterproof ultrasonic ranger with wet probe and temperature sensor, in a slotted 75 mm stilling tube inside the catch basin
 - Conduit from basin to pole, depth marker plate with 150 mm and 300 mm bands
 - Open alert service on a LoRaWAN gateway such as TwinKit
 
-First-order estimates (to be checked at TRL 3): about 70 s typical alert latency, a few milliwatts of sensor load, about 3.1 kg on the pole and about $271 in parts including the $126 FieldNode core, above the $150 budget. See the [design precis](docs/02-concept.md) and [requirements](docs/03-requirements.md), including the requirements not yet met.
+TRL 3 calculations ([FLG-CAL-001](docs/04-calcs/01-sizing.md)): alert latency 82 s at the 95th percentile (110 s worst case), street depth error ±6.3 mm with radar, drain level error ±11 mm, under 10 mW of sensor load, 4.62 kg on the pole, and $145.50 of FloodGauge-specific parts against the $150 budget ($271.50 with the $126 FieldNode core). Two requirements are not met: the drain head cannot read the top 290 mm of the basin, and the conduit from basin to pole makes installation civil work. See the [design precis](docs/02-concept.md) and [requirements](docs/03-requirements.md). The design choices are adopted for TRL 3 pending Amish's review ([FLG-DDR-001](docs/decisions/0001-trl2-review-decisions.md)).
 
 The working bill of materials is in [bom/bom.csv](bom/bom.csv).
 
@@ -77,6 +77,8 @@ The working bill of materials is in [bom/bom.csv](bom/bom.csv).
 > Install only with traffic and confined space precautions. Street furniture and pole mounts must be installed only with the asset owner's permission, by trained crews, with fall protection and traffic management as local rules require.
 >
 > Never enter a catch basin: it can hold toxic or oxygen-poor air and fast-rising water. Stormwater carries sewage and chemicals; wear gloves and eye protection. The FieldNode LiFePO4 cell must be fused and charged only between 0 and 45 °C.
+>
+> An arm over the gutter must clear tall vehicles at the curb; mount it at the height the road authority requires.
 >
 > FloodGauge supplements official flood warnings and must never be the only warning people rely on.
 
