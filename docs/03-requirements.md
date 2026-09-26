@@ -3,9 +3,9 @@ doc_id: FLG-REQ-001
 title: FloodGauge requirements
 project: FloodGauge
 doc_type: Requirements
-version: "0.4"
+version: "0.5"
 status: Draft
-date: '2026-09-25'
+date: '2026-09-26'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -25,11 +25,15 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Recommendations accepted by Amish (DDR-002)
+- version: "0.5"
+  date: '2026-09-26'
+  author: Amish Chadha
+  change: Budget approved by Amish
 ---
 
 # FloodGauge requirements
 
-These requirements are checked by calculation in FLG-CAL-001 v0.2. The design choices behind them were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002). Three targets have changed at TRL 3: R16 covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo (DDR-001 D1); R1 allows a mounting height of 2.5 to 5.0 m, set per site to the road authority's clearance rule; and R3 is restated to the reach of the drain head plus a drain-full signal (both DDR-002). The status column states "not met" plainly.
+These requirements are checked by calculation in FLG-CAL-001 v0.3. The design choices behind them were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002). Three targets have changed at TRL 3: R16 covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo (DDR-001 D1); R1 allows a mounting height of 2.5 to 5.0 m, set per site to the road authority's clearance rule; and R3 is restated to the reach of the drain head plus a drain-full signal (both DDR-002). On 2026-09-26 Amish approved a budget of $160 to cover the priced BOM, so the R16 target rises from $150 to $160 (DDR-002). The status column states "not met" plainly.
 
 Table 1. Requirements and status at TRL 3
 
@@ -50,7 +54,7 @@ Table 1. Requirements and status at TRL 3
 | R13 | Level datum | Head height surveyed to the road surface at the gauge point within ±5 mm; checked yearly against the depth marker | Survey method | Met on paper: tape survey plus a recorded dry-road radar reading |
 | R14 | Operating environment | -20 to 50 °C air; UV, rain and road spray; FieldNode charges only from 0 to 45 °C | Material and cell review | **At risk:** inherits FieldNode's interior heat finding (FND R2, R3); the drain head module is rated -15 to 60 °C |
 | R15 | Mounting | Fits 40 to 60 mm poles with band clamps; total added mass on the pole 5 kg or less | Mass estimate | Met on paper: 4.74 kg; twist factor 37 with the M8 anti-rotation through-bolt (1.45 on friction alone) |
-| R16 | Cost | FloodGauge-specific parts $150 or less at quantity 1; FieldNode costed separately (FND-CAL-001) | Priced BOM | **Not met:** $153.50, $3.50 over, after the surface cable cover and the through-bolt ($279.50 with the $126.00 FieldNode core) |
+| R16 | Cost | FloodGauge-specific parts $160 or less at quantity 1; FieldNode costed separately (FND-CAL-001) | Priced BOM | Met on paper: $153.50, $6.50 under, after the surface cable cover and the through-bolt ($279.50 with the $126.00 FieldNode core) |
 | R17 | Open data | Levels published in an open, documented format (JSON or CSV) through the gateway | Design review | Met by design |
 
 ## Assumptions
@@ -64,7 +68,6 @@ Table 1. Requirements and status at TRL 3
 ## Requirements not met or at risk
 
 - **R12 not met:** the surface cable route (DDR-002) removes the coring and trenching, but fitting its cover takes the installation to 120 min against 90 min. A new proposal is in `docs/REVIEW.md`, awaiting Amish.
-- **R16 not met:** $153.50 against $150 after the surface cable cover ($14.00 in place of the $8.00 conduit) and the through-bolt ($2.00). A new proposal is in `docs/REVIEW.md`, awaiting Amish.
 - **R7 at risk:** slow spreading factors need a longer event interval; event reporting belongs on a private or city gateway (D7).
 - **R9 at risk:** the transducer face seal decides immersion survival.
 - **R14 at risk:** interior heat in FieldNode, and the drain module's -15 °C lower rating.

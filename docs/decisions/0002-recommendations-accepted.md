@@ -3,9 +3,9 @@ doc_id: FLG-DDR-002
 title: FloodGauge recommendations accepted
 project: FloodGauge
 doc_type: Design decision record
-version: "0.1"
+version: "0.2"
 status: Draft
-date: '2026-09-25'
+date: '2026-09-26'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -13,6 +13,10 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Recommendations accepted by Amish (DDR-002)
+- version: "0.2"
+  date: '2026-09-26'
+  author: Amish Chadha
+  change: Budget approved by Amish ($160)
 ---
 
 # 0002: Recommendations accepted
@@ -63,7 +67,7 @@ All five: Decided by Amish, 2026-09-25: go with recommendation.
 | # | Item | Status |
 | --- | --- | --- |
 | O1 | Pilot partner and city for co-design and a first site. No preference stated and no recommendation made. The depth of the N5 band waits on this. | Proposed, awaiting Amish |
-| O2 | R16 over budget after N3 and N4: $153.50 against $150 (new, raised by FLG-CAL-001 v0.2) | Proposed, awaiting Amish (options in `docs/REVIEW.md`) |
+| O2 | R16 over budget after N3 and N4: $153.50 against $150 (new, raised by FLG-CAL-001 v0.2) | Decided by Amish, 2026-09-26: `budget_usd` $160 (see below) |
 | O3 | R12 installation 120 min against 90 min on the surface route (new) | Proposed, awaiting Amish (options in `docs/REVIEW.md`) |
 
 ## Consequences
@@ -75,3 +79,11 @@ All five: Decided by Amish, 2026-09-25: go with recommendation.
 - A site now needs a pole about 4.9 m tall above the sidewalk where tall vehicles use the curb lane, and a mobile elevating platform to fit the arm.
 - Cross-repo actions are listed in `docs/REVIEW.md`; no other repo was edited.
 - TRL 4 is on hold by Amish's instruction. Nothing in this record authorizes building, testing or purchasing.
+
+## Budget approved, 2026-09-26
+
+On 2026-09-26 Amish wrote, in chat: "i approve all the budget items."
+
+- Budget set to $160 to cover the priced BOM: decided by Amish, 2026-09-26. This settles O2. FloodGauge-specific parts are $153.50 (lines 2 to 10; the $126.00 FieldNode core stays costed in its own repo under D1), so R16 moves from not met to met on paper with a $6.50 margin.
+- Requirement status: 1 not met (R12), 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design.
+- Files changed: `project.yaml` (`budget_usd` 150 to 160); FLG-REQ-001 v0.5; FLG-CAL-001 v0.3, `docs/04-calcs/sizing.py` (target read from `budget_usd`) and `results.csv`; FLG-PRB-001 v0.5 and FLG-PRC-001 v0.5 (budget figure); `README.md`; `bom/bom-notes.md`; `docs/REVIEW.md`.

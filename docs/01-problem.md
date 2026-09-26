@@ -3,9 +3,9 @@ doc_id: FLG-PRB-001
 title: FloodGauge problem statement
 project: FloodGauge
 doc_type: Problem statement
-version: "0.3"
+version: "0.4"
 status: Draft
-date: '2026-09-25'
+date: '2026-09-26'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -21,6 +21,10 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: TRL 3 update; budget treatment and design direction per FLG-DDR-001 (adopted for TRL 3 pending Amish's review); open questions updated from FLG-CAL-001
+- version: "0.4"
+  date: '2026-09-26'
+  author: Amish Chadha
+  change: Budget approved by Amish ($160)
 ---
 
 # FloodGauge problem statement
@@ -59,7 +63,7 @@ Operating context (assumed, to be confirmed with partners):
 
 ## Constraints
 
-- Garage-buildable prototype: FloodGauge-specific parts within the $150 USD budget in `project.yaml`, with the shared FieldNode core ($126.00) costed in its own repo (FLG-DDR-001 D1, adopted for TRL 3 pending Amish's review). FLG-CAL-001 gives $145.50.
+- Garage-buildable prototype: FloodGauge-specific parts within the $160 USD budget in `project.yaml` (approved by Amish on 2026-09-26), with the shared FieldNode core ($126.00) costed in its own repo (FLG-DDR-001 D1, adopted for TRL 3 pending Amish's review). FLG-CAL-001 gives $153.50.
 - Builds on the lab's FieldNode core for enclosure, power and radio, so FloodGauge designs only its sensing heads, mounting and alert logic.
 - Levels only: no camera, no microphone, no images or audio leave the device.
 - No drilling of the road surface; any work in the catch basin is done from the surface without entering it.

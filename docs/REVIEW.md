@@ -172,7 +172,7 @@ On 2026-09-25 Amish wrote, in chat: "i accept all your recommendations, go with 
 ### Still awaiting Amish
 
 1. **O1, pilot partner and city.** No recommendation. The depth of the N5 band waits on it.
-2. **New, R16 over budget by $3.50.** Options: (a) raise `budget_usd` to $160; (b) hold $150 and cost the surface cover as site installation material, like the conduit it replaces; (c) hold $150 and find savings in the radar housing once a data sheet and quote exist. Recommendation: (b), since the cable route depends on the site and the conduit was already outside the total. Not applied; `budget_usd` stays $150.
+2. **New, R16 over budget by $3.50.** Options: (a) raise `budget_usd` to $160; (b) hold $150 and cost the surface cover as site installation material, like the conduit it replaces; (c) hold $150 and find savings in the radar housing once a data sheet and quote exist. Recommendation: (b), since the cable route depends on the site and the conduit was already outside the total. Not applied; `budget_usd` stays $150. **Decided by Amish, 2026-09-26: `budget_usd` $160 (option (a)); see "Session 2026-09-26: budget approved".**
 3. **New, R12 at 120 min.** Options: (a) relax R12 to 120 min for the pilot route; (b) keep 90 min and prefabricate the cover and bracket set to cut site time (unproven). Recommendation: (a). Not applied.
 
 ### Cross-repo actions (other repos not edited)
@@ -194,3 +194,12 @@ On 2026-09-25 Amish wrote, in chat: "i accept all your recommendations, go with 
 ### TRL 4
 
 TRL 4 remains on hold by Amish's instruction. No build, test, purchasing, PCB or firmware work was done.
+
+## Session 2026-09-26: budget approved
+
+Amish wrote, in chat on 2026-09-26: "i approve all the budget items." The open R16 budget item (O2) is decided: budget set to $160 to cover the priced BOM (FLG-DDR-002 v0.2).
+
+- `project.yaml` `budget_usd` $150 to $160; README budget and cost lines updated.
+- R16 target $150 to $160; status **not met to met on paper** ($153.50 FloodGauge-specific, $6.50 under; $279.50 with the FieldNode core, which stays costed in its own repo).
+- Requirement counts (FLG-CAL-001 v0.3): 1 not met (R12), 3 at risk, 1 not verifiable, 9 met on paper, 3 met by design.
+- Documents: FLG-PRB-001 v0.4, FLG-PRC-001 v0.5, FLG-REQ-001 v0.5, FLG-CAL-001 v0.3 (`sizing.py` target now read from `budget_usd`; `results.csv` regenerated), FLG-DDR-002 v0.2; `bom/bom-notes.md`; PDFs rebuilt. No media shows the budget, so none was regenerated.

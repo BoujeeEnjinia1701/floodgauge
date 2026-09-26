@@ -22,7 +22,7 @@ pitch: >-
   A street and drain water level sensor using ultrasonic or radar ranging, warning residents and crews when drains back up or streets begin to flood.
 problem: >-
   Urban flash floods rise in minutes, and warnings rely on river gauges far from the streets that flood.
-budget_usd: 150
+budget_usd: 160
 difficulty: 2  # 1 easiest, 5 hardest
 hero_image: media/hero.png
 licenses:

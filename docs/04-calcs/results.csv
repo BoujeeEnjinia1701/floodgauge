@@ -14,5 +14,5 @@ R12,120 min on the surface route; no civil work,"90 min, surface only, no basin 
 R13,tape and radar dry-background survey; yearly marker check,±5 mm,Met on paper
 R14,FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C,-20 to 50 C,At risk
 R15,4.74 kg; twist factor 37 with the through-bolt,40 to 60 mm poles; 5 kg,Met on paper
-R16,$153.50 FloodGauge-specific; $279.50 with FieldNode,$150 FloodGauge-specific,Not met
+R16,$153.50 FloodGauge-specific; $279.50 with FieldNode,$160 FloodGauge-specific,Met on paper
 R17,JSON or CSV through the gateway,open format,Met by design

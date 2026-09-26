@@ -351,7 +351,7 @@ status = [
     ("R13", "Met on paper", "tape and radar dry-background survey; yearly marker check", "±5 mm"),
     ("R14", "At risk", "FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C", "-20 to 50 C"),
     ("R15", "Met on paper", f"{tot:.2f} kg; twist factor {t_bolt / torque:.0f} with the through-bolt", "40 to 60 mm poles; 5 kg"),
-    ("R16", "Met on paper" if spec <= budget else "Not met", f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", "$150 FloodGauge-specific"),
+    ("R16", "Met on paper" if spec <= budget else "Not met", f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", f"${budget:.0f} FloodGauge-specific"),
     ("R17", "Met by design", "JSON or CSV through the gateway", "open format"),
 ]
 with (ROOT / "docs" / "04-calcs" / "results.csv").open("w", newline="") as f:

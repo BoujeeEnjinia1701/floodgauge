@@ -3,9 +3,9 @@ doc_id: FLG-CAL-001
 title: FloodGauge sizing calculations
 project: FloodGauge
 doc_type: Calculation
-version: "0.2"
+version: "0.3"
 status: Draft
-date: '2026-09-25'
+date: '2026-09-26'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -17,17 +17,21 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Recommendations accepted by Amish (DDR-002)
+- version: "0.3"
+  date: '2026-09-26'
+  author: Amish Chadha
+  change: Budget approved by Amish ($160); R16 from not met to met on paper
 ---
 
 # FloodGauge sizing calculations
 
-This v0.2 applies the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On paper, FloodGauge now meets eleven of its seventeen requirements (eight by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses two. R3 is now met on paper. R12 (a 90 min surface-only installation) is still not met: the surface route removes the civil work, but fitting its cover brings the total to 120 min. R16 is newly not met: the cover and the through-bolt take the FloodGauge-specific parts to $153.50 against $150. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
+This v0.2 applies the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets twelve of its seventeen requirements (nine by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses one. R3 is now met on paper. R12 (a 90 min surface-only installation) is still not met: the surface route removes the civil work, but fitting its cover brings the total to 120 min. The cover and the through-bolt take the FloodGauge-specific parts to $153.50, which the $160 budget covers, so R16 is met on paper. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
 
 > **Safety:** These are first-principles estimates for a paper proof of concept. They do not show that the gauge will warn anyone in time, and they are no substitute for tests of the heads, the enclosure or the alert chain. FloodGauge supplements official warnings. See FLG-PRC-001, Safety.
 
 ## Scope and method
 
-The note checks every requirement in FLG-REQ-001 v0.4 against the design in FLG-PRC-001 v0.4 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P2. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
+The note checks every requirement in FLG-REQ-001 v0.5 against the design in FLG-PRC-001 v0.5 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P2. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
 
 The design case is a street with a 150 mm curb and a catch basin 1.3 m deep beside a 60 mm street pole 4.9 m tall above the sidewalk, with tall vehicles in the curb lane, air from -20 to 50 °C, a private LoRaWAN gateway (TwinKit) on EU868, and the FieldNode core as costed and sized in its own repo (FND-CAL-001).
 
@@ -146,7 +150,7 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 ## M. Cost (R16)
 
-- The BOM has 10 lines, all priced. FloodGauge-specific parts (lines 2 to 10) cost $153.50 against the $150 in `project.yaml`, $3.50 over; with the $126.00 FieldNode core, a complete gauge costs $279.50 [M1]. The surface cable cover ($14.00, replacing the $8.00 conduit) and the through-bolt ($2.00) account for the rise from $145.50. R16 is not met. Radar module, housing and cover prices are indicative.
+- The BOM has 10 lines, all priced. FloodGauge-specific parts (lines 2 to 10) cost $153.50 against the $160 in `project.yaml` (approved by Amish on 2026-09-26; was $150), a $6.50 margin; with the $126.00 FieldNode core, a complete gauge costs $279.50 [M1]. The surface cable cover ($14.00, replacing the $8.00 conduit) and the through-bolt ($2.00) account for the rise from $145.50. R16 is met on paper. Radar module, housing and cover prices are indicative.
 
 ## Results
 
@@ -155,7 +159,6 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | ID | Requirement | Value | Target | Status |
 | --- | --- | --- | --- | --- |
 | R12 | Installation | 120 min on the surface route; no civil work | 90 min, surface only, no basin entry | **Not met** |
-| R16 | Cost | $153.50 FloodGauge-specific; $279.50 with FieldNode | $150 FloodGauge-specific | **Not met** |
 | R7 | Airtime | 23.7 s/day at SF9; event 1 % met SF7 to SF10, not SF11 or SF12 | 1 % always; TTN 30 s/day in normal mode | At risk |
 | R9 | Drain head submersion | Potted head; transducer face seal IP67 only | IP68, 2 m, 72 h | At risk |
 | R14 | Operating environment | FieldNode R2 and R3 heat findings (inherited); A02YYUW rated -15 to 60 °C | -20 to 50 °C | At risk |
@@ -168,11 +171,16 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | R8 | Energy autonomy | 68 days nominal, 47 days at -20 °C | 5 days at event sampling | Met on paper |
 | R13 | Level datum | Tape and radar dry-background survey; yearly marker check | ±5 mm | Met on paper |
 | R15 | Mounting | 4.74 kg; twist factor 37 with the through-bolt | 40 to 60 mm poles; 5 kg | Met on paper |
+| R16 | Cost | $153.50 FloodGauge-specific; $279.50 with FieldNode | $160 FloodGauge-specific | Met on paper |
 | R5 | Sampling rate | 60 s and 10 s schedule in the sampling logic | 60 s; 10 s in events | Met by design |
 | R11 | Privacy | Levels, status and battery only | No camera or microphone | Met by design |
 | R17 | Open data | JSON or CSV through the gateway | Open format | Met by design |
 
-Counts: 2 not met, 3 at risk, 1 not verifiable at TRL 3, 8 met on paper, 3 met by design.
+Counts: 1 not met, 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design.
+
+## Changes in v0.3 (budget approved)
+
+- `budget_usd` $150 to $160, approved by Amish on 2026-09-26 (FLG-DDR-002). R16 not met to met on paper, $6.50 margin.
 
 ## Changes in v0.2 (FLG-DDR-002)
 

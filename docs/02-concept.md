@@ -3,9 +3,9 @@ doc_id: FLG-PRC-001
 title: FloodGauge design precis
 project: FloodGauge
 doc_type: Design precis
-version: "0.4"
+version: "0.5"
 status: Draft
-date: '2026-09-25'
+date: '2026-09-26'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -25,13 +25,17 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Recommendations accepted by Amish (DDR-002)
+- version: "0.5"
+  date: '2026-09-26'
+  author: Amish Chadha
+  change: Budget approved by Amish ($160)
 ---
 
 # FloodGauge design precis
 
 ## Summary
 
-FloodGauge is a FieldNode core on an existing street pole next to a storm inlet, with two ranging heads: a 60 GHz radar head on a short arm over the gutter that measures water depth on the street, and an ultrasonic head in a slotted stilling tube inside the catch basin that sees the drain filling before the street floods. The node turns ranges into levels, raises its sampling rate when water rises, and sends levels only over LoRaWAN to an alert service that warns crews and residents at default depths of 150 mm and 300 mm. FLG-CAL-001 v0.2 gives an alert latency of 82 s at the 95th percentile (110 s worst case), a sensor load under 10 mW, 4.74 kg on the pole and $153.50 of FloodGauge-specific parts against the $150 budget ($279.50 with the $126.00 FieldNode core, which is costed in its own repo). Two requirements are not met: installation takes 120 min against 90 min (R12), and the parts are $3.50 over budget (R16). The design choices below were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002): the lens sits at 4.6 m to clear tall vehicles, pilots use a surface cable route under a bolted steel cover, and an M8 through-bolt stops the arm turning.
+FloodGauge is a FieldNode core on an existing street pole next to a storm inlet, with two ranging heads: a 60 GHz radar head on a short arm over the gutter that measures water depth on the street, and an ultrasonic head in a slotted stilling tube inside the catch basin that sees the drain filling before the street floods. The node turns ranges into levels, raises its sampling rate when water rises, and sends levels only over LoRaWAN to an alert service that warns crews and residents at default depths of 150 mm and 300 mm. FLG-CAL-001 v0.3 gives an alert latency of 82 s at the 95th percentile (110 s worst case), a sensor load under 10 mW, 4.74 kg on the pole and $153.50 of FloodGauge-specific parts against the $160 budget approved by Amish on 2026-09-26 ($279.50 with the $126.00 FieldNode core, which is costed in its own repo). One requirement is not met: installation takes 120 min against 90 min (R12). The design choices below were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002): the lens sits at 4.6 m to clear tall vehicles, pilots use a surface cable route under a bolted steel cover, and an M8 through-bolt stops the arm turning.
 
 ![Hero render](../media/hero.png)
 
@@ -94,7 +98,7 @@ Table 2. Key numbers at TRL 3
 | Arm twist | Factor 37 with the M8 through-bolt; 1.45 on clamp friction alone | 35 m/s gust along the street | R15 met on paper |
 | Installation | 120 min, surface only, no civil work | Task list in FLG-CAL-001, L1 | R12 not met |
 | Mass on the pole | 4.74 kg | FieldNode 2.41 kg plus arm, bolt, head, cables and marker | R15 met on paper |
-| Parts cost | $153.50 FloodGauge-specific; $279.50 with FieldNode | `bom/bom.csv` | R16 not met ($3.50 over) |
+| Parts cost | $153.50 FloodGauge-specific; $279.50 with FieldNode | `bom/bom.csv` | R16 met on paper ($6.50 under $160) |
 
 ![Drawing](../cad/drawings/FLG-DWG-001.png)
 
