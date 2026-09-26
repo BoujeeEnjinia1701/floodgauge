@@ -1,5 +1,11 @@
 item,qty,spec,supplier,unit_cost_usd,make_buy,notes
-Ultrasonic or radar level sensor,,,,,,
-FieldNode core,,,,,,
-Mounting bracket over drain or channel,,,,,,
-Alert service,,,,,,
+1 FieldNode core,1,"Lab shared node: IP65 enclosure, 6 W panel, 6 Ah LiFePO4, MPPT board, STM32WL-class LoRaWAN, two M12 ports",Built from the FieldNode BOM,126.00,make,Indicative; cost from the FieldNode README; shared component
+2 Street radar head,1,"60 GHz pulsed coherent radar module (Acconeer XM125 class), PTFE lens, IP67 housing, cable gland",Electronics distributor,55.00,buy,Indicative estimate; module about $43 plus housing and lens; proposed choice awaiting Amish
+3 Sensor arm and pole clamps,1,"40 x 40 x 2 mm aluminium tube about 0.8 m, knee brace, two stainless band clamps, head saddle",Metal stockist,18.00,make,Indicative; hand tools only
+4 Drain head,1,"Waterproof ultrasonic ranger (A02YYUW class, 3 to 450 cm, IP67), two-electrode wet probe, potting compound, sealed cap",DFRobot or distributor,22.00,buy,Sensor $15.90 list price (DFRobot); potting and probe indicative
+5 Stilling tube,1,"75 mm PVC pipe about 1 m, slotted, two stainless wall brackets, stainless anchors",Plumbing supplier,14.00,make,Indicative
+6 Sensor cables,2,"Outdoor 5-core cable with M12 5-pin plug, 2 m and 5 m",Electronics distributor,8.00,buy,Indicative
+7 Conduit and riser guard,1,"25 mm conduit about 1.5 m, glands, steel riser guard",Electrical supplier,8.00,buy,Indicative; coring and trenching labor not included
+8 Depth marker plate,1,"Aluminium plate 90 x 450 mm with amber and red reflective bands",Sign maker or self,6.00,make,Indicative
+9 Alert service,1,"Open software on the gateway or a small server",Self,0.00,make,Not modeled; gateway (TwinKit or city network) not included
+10 Fasteners and consumables,1,"Stainless screws, cable ties, sealant, labels",Hardware store,6.00,buy,Not modeled; indicative
