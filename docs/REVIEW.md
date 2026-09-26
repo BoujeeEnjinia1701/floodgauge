@@ -35,17 +35,17 @@ Requirements not met or at risk:
 - **R12 installation at risk:** the conduit from basin to pole needs coring and trenching.
 - **R10 false alerts unverified:** parked vehicles or people under the street head must be rejected by plausibility logic.
 
-### Proposed, awaiting Amish
+### Proposed, awaiting Amish (status updated 2026-09-25: see FLG-DDR-002)
 
-1. **Budget.** Options: (a) cost FieldNode in its own repo and hold FloodGauge-specific parts to $150 (about $145 now); (b) raise `budget_usd` to $300; (c) cut to a street-only ultrasonic variant (about $188, still over $150, and misses R2). Recommendation: (a), with R16 reworded as "FloodGauge-specific parts $150 or less; FieldNode costed separately". `project.yaml` is unchanged.
-2. **Two heads on one node** (street and drain) versus street only or drain only. Recommendation: both.
-3. **Street head sensing:** 60 GHz radar versus ultrasonic. Recommendation: radar, with ultrasonic documented as the lower-cost variant.
-4. **Drain head:** ultrasonic in a slotted stilling tube with a wet probe, versus radar. Recommendation: ultrasonic in a tube.
-5. **Arm over the gutter** versus a head over the sidewalk. Recommendation: over the gutter at 2.95 m or higher, subject to the road authority's clearance rules.
-6. **Alert bands** at 150 mm and 300 mm of water above the road, from NWS guidance, plus a drain-full alert. Recommendation: defaults, to be set locally with the partner city.
-7. **Network:** private or city LoRaWAN gateway (TwinKit) for event reporting, TTN for pilots only. Recommendation: private gateway.
-8. **Pilot partner and city** for co-design and a first site.
-9. `project.yaml` pitch and problem: no change proposed; the numbers found support them.
+1. **Budget.** Options: (a) cost FieldNode in its own repo and hold FloodGauge-specific parts to $150 (about $145 now); (b) raise `budget_usd` to $300; (c) cut to a street-only ultrasonic variant (about $188, still over $150, and misses R2). Recommendation: (a), with R16 reworded as "FloodGauge-specific parts $150 or less; FieldNode costed separately". `project.yaml` is unchanged. **Decided by Amish, 2026-09-25: go with recommendation.**
+2. **Two heads on one node** (street and drain) versus street only or drain only. Recommendation: both. **Decided by Amish, 2026-09-25: go with recommendation.**
+3. **Street head sensing:** 60 GHz radar versus ultrasonic. Recommendation: radar, with ultrasonic documented as the lower-cost variant. **Decided by Amish, 2026-09-25: go with recommendation.**
+4. **Drain head:** ultrasonic in a slotted stilling tube with a wet probe, versus radar. Recommendation: ultrasonic in a tube. **Decided by Amish, 2026-09-25: go with recommendation.**
+5. **Arm over the gutter** versus a head over the sidewalk. Recommendation: over the gutter at 2.95 m or higher, subject to the road authority's clearance rules. **Decided by Amish, 2026-09-25: go with recommendation.**
+6. **Alert bands** at 150 mm and 300 mm of water above the road, from NWS guidance, plus a drain-full alert. Recommendation: defaults, to be set locally with the partner city. **Decided by Amish, 2026-09-25: go with recommendation.**
+7. **Network:** private or city LoRaWAN gateway (TwinKit) for event reporting, TTN for pilots only. Recommendation: private gateway. **Decided by Amish, 2026-09-25: go with recommendation.**
+8. **Pilot partner and city** for co-design and a first site. No recommendation; still Proposed, awaiting Amish.
+9. `project.yaml` pitch and problem: no change proposed; the numbers found support them. **Decided by Amish, 2026-09-25: go with recommendation.**
 
 ### Safety concerns
 
@@ -100,16 +100,16 @@ Key numbers: 85.1 mJ per sampling cycle; 9.3 % of the FieldNode 100 mW allowance
 
 ### Decisions recorded (FLG-DDR-001)
 
-Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review: D1 FieldNode costed in its own repo, R16 restated to "FloodGauge-specific parts $150 or less; FieldNode costed separately" (`budget_usd` unchanged at $150; no new figure was recommended); D2 two heads on one node; D3 radar street head, ultrasonic as the lower-cost variant; D4 ultrasonic drain head in a slotted stilling tube with a wet probe; D5 arm over the gutter at 2.95 m or higher, subject to clearance rules; D6 alert bands 150 mm and 300 mm plus drain-full, set locally with the partner city; D7 private or city gateway for event reporting, TTN for pilots only; D8 levels only, no imaging; D9 no change to pitch or problem, so `project.yaml` and `README.md` keep the existing wording.
+Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review, and since then Decided by Amish, 2026-09-25: go with recommendation (FLG-DDR-002): D1 FieldNode costed in its own repo, R16 restated to "FloodGauge-specific parts $150 or less; FieldNode costed separately" (`budget_usd` unchanged at $150; no new figure was recommended); D2 two heads on one node; D3 radar street head, ultrasonic as the lower-cost variant; D4 ultrasonic drain head in a slotted stilling tube with a wet probe; D5 arm over the gutter at 2.95 m or higher, subject to clearance rules; D6 alert bands 150 mm and 300 mm plus drain-full, set locally with the partner city; D7 private or city gateway for event reporting, TTN for pilots only; D8 levels only, no imaging; D9 no change to pitch or problem, so `project.yaml` and `README.md` keep the existing wording.
 
 ### Still awaiting Amish
 
 1. **O1, pilot partner and city** for co-design and a first site. No preference stated; no recommendation made.
-2. **New, R3 wording.** Recommendation: restate R3 as "continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that". Not applied.
-3. **New, head height and R1.** At 2.95 m the head is inside a 4.0 to 4.3 m vehicle envelope at the curb. Options: (a) widen the R1 mounting band to 2.5 to 5.0 m and set the height per site to the road authority's clearance rule (about 4.6 m where trucks use the curb lane); (b) keep 2.95 m only where the curb lane carries no tall vehicles. Recommendation: (a). Not applied; the model stays at 2.95 m as adopted under D5.
-4. **New, R12 cable route.** Options: (a) conduit as now (civil work); (b) surface route out at the grate frame and along the curb face under a bolted steel cover; (c) a second FieldNode for the drain head. Recommendation: (b) for pilots, (a) at permanent sites installed with road works. Not applied.
-5. **New, arm anti-rotation.** Friction alone gives a twist factor of 1.45. Recommendation: add a through-bolt or pinned clamp as a design detail. Not applied.
-6. **Suggestion only, not in the repo:** a first alert band below 150 mm, since in a fast flood the 150 mm alert arrives at about 190 to 250 mm; a matter for the partner city under D6.
+2. **New, R3 wording.** Recommendation: restate R3 as "continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that". **Decided by Amish, 2026-09-25: go with recommendation.** Applied (DDR-002 N1).
+3. **New, head height and R1.** At 2.95 m the head is inside a 4.0 to 4.3 m vehicle envelope at the curb. Options: (a) widen the R1 mounting band to 2.5 to 5.0 m and set the height per site to the road authority's clearance rule (about 4.6 m where trucks use the curb lane); (b) keep 2.95 m only where the curb lane carries no tall vehicles. Recommendation: (a). **Decided by Amish, 2026-09-25: go with recommendation.** Applied (DDR-002 N2).
+4. **New, R12 cable route.** Options: (a) conduit as now (civil work); (b) surface route out at the grate frame and along the curb face under a bolted steel cover; (c) a second FieldNode for the drain head. Recommendation: (b) for pilots, (a) at permanent sites installed with road works. **Decided by Amish, 2026-09-25: go with recommendation.** Applied (DDR-002 N3).
+5. **New, arm anti-rotation.** Friction alone gives a twist factor of 1.45. Recommendation: add a through-bolt or pinned clamp as a design detail. **Decided by Amish, 2026-09-25: go with recommendation.** Applied as a through-bolt (DDR-002 N4).
+6. **Suggestion only, not in the repo:** a first alert band below 150 mm, since in a fast flood the 150 mm alert arrives at about 190 to 250 mm; a matter for the partner city under D6. **Decided by Amish, 2026-09-25: go with recommendation.** Applied as a configurable band, depth set with the partner city (DDR-002 N5).
 
 ### Cross-repo consistency
 
@@ -138,3 +138,59 @@ Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for 
 ### Recommended next step
 
 TRL 4 is on hold by Amish's instruction; this repo stops at TRL 3. Amish's review is needed on D1 to D9, on O1 and on the new items 2 to 5 above. For the record only, TRL 4 would need: a bench build of both heads on a FieldNode; a lab test report (TST, `environment: lab`) covering radar depth accuracy over a water tank with a curb step in the beam, ultrasonic level accuracy in a slotted tube over temperature, immersion of the drain head, sampling energy and the end-to-end alert latency through a gateway; and build log entries. None of this has been started.
+
+## Session 2026-09-25: recommendations accepted
+
+On 2026-09-25 Amish wrote, in chat: "i accept all your recommendations, go with them across all repos." Every item with a recommendation is now **Decided by Amish, 2026-09-25: go with recommendation**, recorded in `docs/decisions/0002-recommendations-accepted.md` (FLG-DDR-002 v0.1). Items without a recommendation stay "Proposed, awaiting Amish".
+
+### Decisions applied and what changed
+
+- **D1 to D9** (FLG-DDR-001, now v0.2): status wording only. `budget_usd` stays $150, the recommended figure; the pitch and problem are unchanged (D9).
+- **N1, R3 restated** to "continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that". R3: not met to met on paper.
+- **N2, head height:** R1 band 2.5 to 3.5 m to 2.5 to 5.0 m, set per site. Reference lens 2.95 m to 4.6 m (clears a 4.3 m vehicle plus 0.3 m); existing pole in the model 3.3 m to 4.9 m above the sidewalk. Knock-on change: FieldNode center 2.35 m to 3.0 m and street cable 2 m to 3 m, because a 5 m I2C cable would reach about 550 pF against 400 pF (now 350 pF). Radar depth error ±6.3 mm to ±6.5 mm (pole expansion over the taller height).
+- **N3, cable route:** conduit (coring and trenching) to a surface route for pilots under 0.76 m of bolted steel cover, anchored to the curb and sidewalk only. BOM line 7 $8.00 to $14.00. Installation 90 min plus civil work to 120 min with none.
+- **N4, anti-rotation:** M8 A4 through-bolt at the lower clamp. Twist factor 1.45 to 37. BOM line 3 $18.00 to $20.00.
+- **N5, first alert band below 150 mm:** supported by the alert service, depth set with the partner city (no figure chosen).
+- **Totals:** FloodGauge-specific parts $145.50 to $153.50; complete gauge $271.50 to $279.50. Mass on the pole 4.62 kg to 4.74 kg.
+- **Files:** `cad/src/model.py` (STEP and STL re-exported), `cad/src/sheets.py` and FLG-DWG-001 Rev P1 to P2, `cad/src/concept_media.py` and all of `media/` re-rendered (hero, blueprint and exploded checked; `_views` folders removed), `docs/04-calcs/sizing.py` and FLG-CAL-001 v0.1 to v0.2, FLG-REQ-001 v0.3 to v0.4, FLG-PRC-001 v0.3 to v0.4, `bom/bom.csv`, `bom/bom-notes.md`, `project.yaml` (evidence list), `README.md` (key components, numbers, safety; "What sparked the idea" rewritten around the September 2021 Ida flooding in New York City). PDFs rebuilt; superseded PDFs removed from `docs/pdf/`.
+
+### Requirement status (FLG-CAL-001 v0.2)
+
+2 not met, 3 at risk, 1 not verifiable at TRL 3, 8 met on paper, 3 met by design.
+
+| ID | Status | Key number |
+| --- | --- | --- |
+| R12 Installation | **Not met** | 120 min on the surface route, no civil work (target 90 min) |
+| R16 Cost | **Not met** | $153.50 FloodGauge-specific against $150 |
+| R7 Airtime | At risk | Unchanged: 23.7 s/day at SF9; event reporting breaks 1 % at SF11 and SF12 |
+| R9 Submersion | At risk | Unchanged: transducer face only IP67 |
+| R14 Environment | At risk | Unchanged: FieldNode heat; drain module rated -15 to 60 °C |
+| R10 False readings | Not verifiable at TRL 3 | Curb echo would read 143 mm if not rejected |
+| R1, R2, R3, R4, R6, R8, R13, R15 | Met on paper | Lens 4.6 m, 1.9 to 5.0 m over the band; ±6.5 mm; restated R3; ±11.0 mm; 82 s at 95 %; 68 days; ±5 mm; 4.74 kg |
+| R5, R11, R17 | Met by design | |
+
+### Still awaiting Amish
+
+1. **O1, pilot partner and city.** No recommendation. The depth of the N5 band waits on it.
+2. **New, R16 over budget by $3.50.** Options: (a) raise `budget_usd` to $160; (b) hold $150 and cost the surface cover as site installation material, like the conduit it replaces; (c) hold $150 and find savings in the radar housing once a data sheet and quote exist. Recommendation: (b), since the cable route depends on the site and the conduit was already outside the total. Not applied; `budget_usd` stays $150.
+3. **New, R12 at 120 min.** Options: (a) relax R12 to 120 min for the pilot route; (b) keep 90 min and prefabricate the cover and bracket set to cut site time (unproven). Recommendation: (a). Not applied.
+
+### Cross-repo actions (other repos not edited)
+
+- **FieldNode:** FloodGauge now mounts the core at 3.0 m (was 2.35 m) and relies on FND-CAL-001's $126.00 and 2.41 kg under D1; the port pin assignment (FieldNode O2) and the sun shield (0.15 kg, would give 4.89 kg on the pole, still under 5.0 kg) remain FieldNode's to settle.
+- **TwinKit:** check gateway loss at SF9 when every gauge in a city reports every minute in a storm, once a pilot size is known (carried from the TRL 3 session).
+
+### Safety
+
+- The arm at 4.7 m needs a mobile elevating platform and clearance from overhead lines; drilling the pole for the through-bolt needs the asset owner's permission.
+- The surface cable cover crosses the sidewalk: low, beveled, anchored and marked to avoid a trip hazard.
+- Confined space, traffic, stormwater and LiFePO4 notes from the earlier sessions stand.
+
+### Gaps and notes
+
+- Callouts 2 and 4 in `media/exploded.png` sit over the small radar and drain heads, which are small at the scale needed for a 4.9 m pole.
+- Radar module accuracy, current and price are still assumptions; the cover and bolt prices are indicative.
+
+### TRL 4
+
+TRL 4 remains on hold by Amish's instruction. No build, test, purchasing, PCB or firmware work was done.

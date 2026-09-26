@@ -1,4 +1,4 @@
-"""FloodGauge parametric model (build123d), TRL 3.
+"""FloodGauge parametric model (build123d), TRL 3 (FLG-DDR-002 decisions applied).
 
 Run from the repo root:  python cad/src/model.py
 Exports STEP and STL into cad/step and cad/stl:
@@ -6,6 +6,10 @@ Exports STEP and STL into cad/step and cad/stl:
   floodgauge-pole-kit   FieldNode core, street radar head, arm and clamps, depth marker (items 1 to 3, 8)
   floodgauge-drain-kit  drain head and stilling tube (items 4 and 5)
   floodgauge-site       existing street, catch basin, grate and pole (context only, not in the BOM)
+
+FLG-DDR-002 (2026-09-25): lens at 4.6 m for a curb lane with tall vehicles (R1 band 2.5 to 5.0 m, set per
+site); pilot cable route at the surface under a bolted steel cover (conduit kept for permanent sites);
+M8 anti-rotation through-bolt at the upper clamp.
 
 Massing-plus detail: main dimensions and interfaces are correct for concept review; fabrication
 detail (slots, threads, fixings, seals) is not modeled. PRELIMINARY, NOT FOR FABRICATION.
@@ -23,25 +27,27 @@ import math
 PARAMS = {
     # existing street (context, not in the BOM)
     "curb_h": 150.0, "slab": 200.0, "strip": 1500.0, "road_w": 1300.0, "walk_w": 1300.0,
-    "pole_x": 450.0, "pole_od": 60.0, "pole_h": 3300.0,          # sign pole, height above the sidewalk
+    "pole_x": 450.0, "pole_od": 60.0, "pole_h": 4900.0,          # street pole, height above the sidewalk
     "grate": (-500.0, -100.0, 600.0, 40.0),                        # x0, x1, length along Y, thickness
     "basin": (-750.0, -50.0, 900.0), "basin_floor": -1300.0, "basin_wall": 100.0,
     "outlet_z": -1050.0, "outlet_bore": 300.0,                     # outlet pipe center and bore
     # 1 FieldNode core (from the FieldNode repo)
     "enc": (90.0, 150.0, 200.0),                                   # depth (X), width (Y), height (Z)
-    "node_z": 2350.0,                                              # enclosure center above the road
+    "node_z": 3000.0,                                              # enclosure center above the road
     "back_plate": (12.0, 110.0, 240.0),
     "panel": (200.0, 290.0, 17.0), "panel_tilt": 25.0,             # tilted toward the road
     "fieldnode_mass": 2.41, "fieldnode_cost": 126.00,
     # 2 street radar head
     "head_offset": 250.0,          # head axis past the curb face, over the gutter
-    "head_z": 2950.0,              # underside of the lens above the road (range to the dry road)
+    "head_z": 4600.0,              # underside of the lens above the road (range to the dry road); DDR-002: clears a 4.3 m vehicle plus 0.3 m
+    "head_band": (2500.0, 5000.0), # R1 mounting band, height set per site to the road authority's clearance rule
     "head_d": 76.0, "head_h": 90.0, "lens_d": 60.0, "lens_t": 6.0,
     # 3 sensor arm and clamps
-    "arm_sq": 40.0, "arm_wall": 2.0, "arm_z": 3060.0,
+    "arm_sq": 40.0, "arm_wall": 2.0, "arm_z": 4710.0,
     "clamp_dz": 400.0, "clamp_w": 50.0, "clamp_t": 8.0,
     "brace_sq": 25.0, "brace_wall": 2.0, "brace_leg": 400.0,
     "saddle": (70.0, 50.0, 40.0),
+    "bolt_d": 8.0, "bolt_l": 110.0,  # M8 stainless anti-rotation through-bolt, upper clamp and pole (DDR-002)
     # 4 drain head and 5 stilling tube
     "tube_od": 75.0, "tube_wall": 3.0, "tube_inset": 90.0,         # tube axis from the basin wall (road side of curb)
     "tube_top": -300.0, "tube_bot_gap": 60.0,                       # top below the road; bottom above the basin floor
@@ -50,9 +56,11 @@ PARAMS = {
     "us_blind": 30.0,              # ultrasonic blind zone below the transducer face (A02YYUW, 3 cm)
     "probe_drop": 10.0,            # wet probe tips below the head face
     "bracket_z": (-380.0, -1010.0),
-    # 6 cables, 7 conduit
-    "cable_d": 10.0, "conduit_od": 28.0, "conduit_z": -330.0, "conduit_y": 40.0,
-    "riser_rise": 400.0,           # conduit riser height above the sidewalk
+    # 6 cables, 7 surface cable cover (pilot route, DDR-002); conduit route kept for permanent sites
+    "cable_d": 10.0, "cover_y": 250.0,  # cover line along the street, beside the grate end
+    "cover_angle": (50.0, 5.0),    # steel angle leg and thickness over the gutter strip and curb face
+    "cover_walk": (120.0, 12.0),   # low beveled steel cover across the sidewalk, width and height
+    "riser_rise": 400.0,           # riser guard height above the sidewalk
     "guard": (40.0, 70.0, 300.0),
     # 8 depth marker plate
     "marker": (3.0, 90.0, 450.0), "bands": (150.0, 300.0, 450.0),  # amber from 150, red from 300 to 450 mm above road
@@ -61,7 +69,7 @@ PARAMS = {
 BOM = {"node": (1, "FieldNode core"), "panel": (1, "FieldNode 6 W panel"),
        "street_head": (2, "Street radar head"), "arm": (3, "Sensor arm and pole clamps"),
        "drain_head": (4, "Drain head"), "tube": (5, "Stilling tube"),
-       "cables": (6, "Sensor cables"), "conduit": (7, "Conduit and riser guard"),
+       "cables": (6, "Sensor cables"), "conduit": (7, "Surface cable cover and riser guard"),
        "marker": (8, "Depth marker plate")}
 
 
@@ -94,14 +102,18 @@ def derived(p=PARAMS):
     d["node_x"] = d["pole_face_x"] - p["back_plate"][0] - p["enc"][0] / 2
     d["node_bot"] = p["node_z"] - p["enc"][2] / 2
     d["node_top"] = p["node_z"] + p["enc"][2] / 2
+    d["riser_x"] = p["pole_x"] + 60.0
     d["riser_top"] = p["curb_h"] + p["riser_rise"]
     d["walk_top"] = p["curb_h"]
     d["overall_top"] = max(d["arm_top"], d["head_top"])
-    # cable runs (mm), street head: along the arm, down to the node; drain head: up the tube,
-    # along the conduit, up the riser and the pole to the node
+    d["head_clear_min"] = p["head_band"][0]
+    # cable runs (mm), street head: along the arm, down to the node; drain head (surface route, DDR-002):
+    # up from the head to the grate frame, across the gutter strip, up the curb face, across the sidewalk
+    # under the cover to the riser guard, then up the pole to the node
     d["cable_street"] = (d["cantilever"] - d["pole_r"]) + (p["arm_z"] - p["node_z"])
-    d["cable_drain"] = ((p["tube_top"] - p["conduit_z"]) + (p["pole_x"] + 60 - d["tube_x"])
-                        + (d["riser_top"] - p["conduit_z"]) + (d["node_bot"] - d["riser_top"]))
+    d["cable_drain"] = ((0.0 - p["tube_top"]) + (0.0 - d["tube_x"]) + p["cover_y"] + p["curb_h"]
+                        + d["riser_x"] + (d["riser_top"] - p["curb_h"]) + (d["node_bot"] - d["riser_top"]))
+    d["cover_len"] = (0.0 - p["grate"][1]) + p["curb_h"] + d["riser_x"]   # gutter strip, curb face, sidewalk
     return d
 
 
@@ -142,6 +154,8 @@ def build_parts(p=PARAMS):
     L = p["brace_leg"]
     arm += (Pos(D["pole_face_x"] - L / 2, 0, p["arm_z"] - L / 2) * Rot(0, -45, 0)
             * Box(p["brace_sq"], p["brace_sq"], D["brace_len"]))
+    # M8 anti-rotation through-bolt through the lower clamp band and the pole, axis along the street (DDR-002)
+    arm += Pos(px, 0, p["arm_z"] - p["clamp_dz"]) * Rot(90, 0, 0) * Cylinder(p["bolt_d"] / 2, p["bolt_l"])
     parts["arm"] = arm
 
     # 4 drain head on top of 5 the stilling tube
@@ -165,15 +179,23 @@ def build_parts(p=PARAMS):
     cab += Pos(xb, 0, (D["riser_top"] + D["node_bot"]) / 2) * Box(c, c, D["node_bot"] - D["riser_top"])
     parts["cables"] = cab
 
-    # 7 conduit cored through the basin wall, under the sidewalk to a riser behind the pole, with guard
-    co, cz, cy = p["conduit_od"], p["conduit_z"], p["conduit_y"]
-    xr = px + 60
-    cond = Pos((bx1 + xr) / 2, cy, cz) * Rot(0, 90, 0) * Cylinder(co / 2, xr - bx1)
-    cond += Pos(xr, cy, (cz + D["riser_top"]) / 2) * Cylinder(co / 2, D["riser_top"] - cz)
+    # 7 surface cable cover (pilot route, DDR-002): the cable leaves the basin at the grate frame, runs under a
+    # steel angle across the gutter strip and up the curb face (anchored to the curb only, no road drilling),
+    # under a low beveled steel cover across the sidewalk, and up a riser guard beside the pole
+    cy, xr = p["cover_y"], D["riser_x"]
+    al, at = p["cover_angle"]
+    cw, ch = p["cover_walk"]
+    gx1 = p["grate"][1]
+    cov = Pos(gx1 / 2, cy, at / 2) * Box(-gx1, al, at)                                    # over the gutter strip
+    cov += Pos(-at / 2, cy, p["curb_h"] / 2) * Box(at, al, p["curb_h"])                  # up the curb face
+    cov += Pos(xr / 2, cy, p["curb_h"] + ch / 2) * Box(xr, cw, ch)                       # across the sidewalk
     gx, gy, gz = p["guard"]
-    cond += Pos(xr, cy, p["curb_h"] + gz / 2) * (Box(gx, gy, gz) - Box(gx - 6, gy - 6, gz + 2))
-    cond += Pos((tx + bx1) / 2, cy, cz) * Rot(0, 90, 0) * Cylinder(8, bx1 - tx)       # flexible tail to the head
-    parts["conduit"] = cond
+    cov += Pos(xr, cy, p["curb_h"] + gz / 2) * (Box(gx, gy, gz) - Box(gx - 6, gy - 6, gz + 2))
+    cov += Pos(tx, 0, (p["tube_top"] + p["drain_head_h"] - 60) / 2) * Cylinder(5, -(p["tube_top"] + p["drain_head_h"] + 60))  # flexible tail
+    cov += Pos(tx, cy / 2, -60) * Rot(90, 0, 0) * Cylinder(5, cy)
+    cov += Pos((tx + gx1) / 2, cy, -60) * Rot(0, 90, 0) * Cylinder(5, gx1 - tx)
+    cov += Pos(gx1 + 5, cy, -30) * Cylinder(5, 60)                                         # out at the grate frame
+    parts["conduit"] = cov
 
     # 8 depth marker plate on the road side of the pole, from the sidewalk up
     mt, mw, mh = p["marker"]
@@ -210,7 +232,6 @@ def site(p=PARAMS, basin_half=False):
     oz, ob = p["outlet_z"], p["outlet_bore"]
     basin = outer - inner - Pos(ox0 - 350, 0, oz) * Rot(0, 90, 0) * Cylinder(ob / 2, 800)
     basin += Pos(ox0 - 350, 0, oz) * Rot(0, 90, 0) * (Cylinder(ob / 2 + 20, 700) - Cylinder(ob / 2, 702))
-    # conduit hole through the basin wall and slab clearance is implied, not modeled
     grate = Pos((gx0 + gx1) / 2, 0, -gt / 2) * Box(gx1 - gx0 - 10, gl - 10, gt)
     for k in range(7):
         grate -= Pos((gx0 + gx1) / 2, -240 + k * 80, -gt / 2) * Box(300, 40, gt + 10)

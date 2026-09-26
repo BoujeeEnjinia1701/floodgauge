@@ -1,7 +1,7 @@
 id,value,target,status
-R1,2.95 to 2.35 m range; module to 20 m,0 to 600 mm; head 2.5 to 3.5 m,Met on paper
-R2,"radar RSS ±6.3 mm, sum ±11.3 mm; ultrasonic variant ±19.5 mm",±10 mm,Met on paper (module accuracy assumed)
-R3,continuous to 330 mm below the road; top 290 mm wet probe only,50 mm above floor to grate underside,Not met
+R1,lens 4.60 m clears a 4.3 m vehicle; range 1.9 to 5.0 m over the band; module to 20 m,0 to 600 mm; head 2.5 to 5.0 m per site,Met on paper
+R2,"radar RSS ±6.5 mm, sum ±12.0 mm; ultrasonic variant ±27.0 mm",±10 mm,Met on paper (module accuracy assumed)
+R3,continuous -1250 to -330 mm; wet probe at -310 mm,"50 mm above floor to 330 mm below road, drain-full above",Met on paper
 R4,±11.0 mm with NTC; ±19.7 mm without,±20 mm,Met on paper
 R5,60 s and 10 s schedule set in the sampling logic,60 s; 10 s in events,Met by design
 R6,worst 110 s without packet loss,"120 s, 95 % of events",Met on paper (private gateway)
@@ -10,9 +10,9 @@ R8,"68 days nominal, 47 days at -20 C",5 days at event sampling,Met on paper
 R9,potted head; transducer face seal IP67 only,"IP68, 2 m, 72 h",At risk
 R10,rules defined; curb echo needs a recorded background,1 false alert per year or fewer,Not verifiable at TRL 3
 R11,"levels, status and battery only",no camera or microphone,Met by design
-R12,90 min without conduit; conduit is civil work,"90 min, surface only, no basin entry",Not met
+R12,120 min on the surface route; no civil work,"90 min, surface only, no basin entry",Not met
 R13,tape and radar dry-background survey; yearly marker check,±5 mm,Met on paper
 R14,FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C,-20 to 50 C,At risk
-R15,4.62 kg; clamp twist factor 1.45,40 to 60 mm poles; 5 kg,Met on paper
-R16,$145.50 FloodGauge-specific; $271.50 with FieldNode,$150 FloodGauge-specific,Met on paper
+R15,4.74 kg; twist factor 37 with the through-bolt,40 to 60 mm poles; 5 kg,Met on paper
+R16,$153.50 FloodGauge-specific; $279.50 with FieldNode,$150 FloodGauge-specific,Not met
 R17,JSON or CSV through the gateway,open format,Met by design

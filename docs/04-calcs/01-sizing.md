@@ -3,7 +3,7 @@ doc_id: FLG-CAL-001
 title: FloodGauge sizing calculations
 project: FloodGauge
 doc_type: Calculation
-version: "0.1"
+version: "0.2"
 status: Draft
 date: '2026-09-25'
 author: Amish Chadha
@@ -13,19 +13,23 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: First issue for TRL 3 (range and geometry, depth and level error budgets, tube hydraulics, energy, airtime, alert latency, false readings, arm and clamps, mass, cables, submersion, installation, cost)
+- version: "0.2"
+  date: '2026-09-25'
+  author: Amish Chadha
+  change: Recommendations accepted by Amish (DDR-002)
 ---
 
 # FloodGauge sizing calculations
 
-On paper, FloodGauge meets eleven of its seventeen requirements (eight by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses two. The misses are both about the site, not the sensing. R3 (drain level up to the grate) is not met: the ultrasonic drain head reads continuously only to 330 mm below the road, and the top 290 mm of the basin is covered by the wet probe alone. R12 (a 90 min surface-only installation) is not met: the pole and basin work alone take the full 90 min, and the conduit from the basin to the pole is civil work that needs coring and trenching. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). The calculations also found a clearance problem that no requirement covers: at 2.95 m the street head sits inside the envelope of a 4 m truck at the curb. Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
+This v0.2 applies the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On paper, FloodGauge now meets eleven of its seventeen requirements (eight by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses two. R3 is now met on paper. R12 (a 90 min surface-only installation) is still not met: the surface route removes the civil work, but fitting its cover brings the total to 120 min. R16 is newly not met: the cover and the through-bolt take the FloodGauge-specific parts to $153.50 against $150. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
 
 > **Safety:** These are first-principles estimates for a paper proof of concept. They do not show that the gauge will warn anyone in time, and they are no substitute for tests of the heads, the enclosure or the alert chain. FloodGauge supplements official warnings. See FLG-PRC-001, Safety.
 
 ## Scope and method
 
-The note checks every requirement in FLG-REQ-001 v0.3 against the design in FLG-PRC-001 v0.3 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
+The note checks every requirement in FLG-REQ-001 v0.4 against the design in FLG-PRC-001 v0.4 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P2. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
 
-The design case is a street with a 150 mm curb and a catch basin 1.3 m deep beside a 60 mm sign pole, air from -20 to 50 °C, a private LoRaWAN gateway (TwinKit) on EU868, and the FieldNode core as costed and sized in its own repo (FND-CAL-001).
+The design case is a street with a 150 mm curb and a catch basin 1.3 m deep beside a 60 mm street pole 4.9 m tall above the sidewalk, with tall vehicles in the curb lane, air from -20 to 50 °C, a private LoRaWAN gateway (TwinKit) on EU868, and the FieldNode core as costed and sized in its own repo (FND-CAL-001).
 
 ## Assumptions
 
@@ -44,20 +48,22 @@ The design case is a street with a 150 mm curb and a catch basin 1.3 m deep besi
 | Network | Gateway, network server and alert service 1 to 4.7 s (TwinKit worst 4.7 s); 2 to 10 s on a city or public server; 1 % uplink loss | TWK-CAL-001; assumed for public servers |
 | Wind and loads | 35 m/s gust (q = 750 Pa); drag 2.0 on square tubes and 1.2 on the head; 6063-T6 class aluminium, E = 69 GPa, yield 214 MPa; band clamp preload 1,000 N, friction 0.3; misuse case of a 50 kg person hanging on the head | As FND-CAL-001; handbook values |
 | Vehicles | Tall vehicles 4.0 to 4.3 m at the curb, 0.3 m clearance margin | Typical legal height limits; to confirm with the road authority |
+| Through-bolt | M8 stainless A4-70, stress area 36.6 mm², shear 0.6 f_ub; pole wall 2.5 mm, f_u 360 MPa, bearing 2.5 f_u d t | Handbook values; pole wall assumed |
+| Cables | 100 pF/m and 0.07 kg/m for outdoor 5-core cable | Assumed |
 
 ## A. Geometry and range (R1, R3)
 
-- **Street range.** With the lens 2.95 m above the road, the radar sees 2.95 m to a dry road and 2.35 m at 600 mm depth, well inside its 20 m range [A1]. R1 is met.
-- **Curb echo.** An assumed 25° beam lights a circle of 654 mm radius on the road, which includes the curb 250 mm away. If the firmware picked the first echo, the curb top at 2,811 mm would read as 139 mm of water on a dry day [A2]. A beam narrow enough to miss the curb would need to be under 9.7° wide, which a small lens does not give [A3]. The street head therefore needs a recorded dry-road background at installation and tracking of the nadir peak; this is part of R10.
+- **Street range.** With the lens 4.6 m above the road, the radar sees 4.60 m to a dry road and 4.00 m at 600 mm depth, well inside its 20 m range [A1]. Over the whole R1 mounting band of 2.5 to 5.0 m the range runs from 1.9 to 5.0 m; at 5.0 m the assumed beam lights a circle of 1,108 mm radius, so the dry-road background matters more on tall sites [A1b]. R1 is met.
+- **Curb echo.** An assumed 25° beam lights a circle of 1,020 mm radius on the road, which includes the curb 250 mm away. If the firmware picked the first echo, the curb top at 4,457 mm would read as 143 mm of water on a dry day [A2]. A beam narrow enough to miss the curb would need to be under 6.2° wide, which a small lens does not give [A3]. The street head therefore needs a recorded dry-road background at installation and tracking of the nadir peak; this is part of R10.
 - **Drain range.** The drain head face is 300 mm below the road. The ultrasonic reads levels from 1,250 mm to 330 mm below the road (30 to 950 mm range, within the module's 30 to 4,500 mm), and the wet probe trips at 310 mm [A4]. The 50 mm level lies 10 mm below the tube mouth, in the beam path; the outlet invert is 100 mm above the floor, so the sump always holds water [A6].
-- **R3 is not met at the top.** Between 330 mm and 40 mm below the road (the grate underside), a 290 mm band, the only signal is the wet probe at one point [A5]. The drain head cannot rise higher, because the road slab and grate frame sit above it. In practice a basin in that band is surcharging, the wet probe says so, and the street head reads the water once it reaches the road. Proposed, awaiting Amish: restate R3 as "continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that".
-- **Vehicle clearance.** The adopted head height of 2.95 m (FLG-DDR-001, D5) is inside the envelope of a 4.0 to 4.3 m vehicle parked or passing at the curb. Clearing it needs about 4.6 m, where the radar still ranges easily, but the R1 mounting band of 2.5 to 3.5 m excludes that height [A7]. Proposed, awaiting Amish: widen the R1 band to 2.5 to 5.0 m and set the height to the road authority's clearance rule at each site.
+- **R3 as restated.** Between 330 mm and 40 mm below the road (the grate underside), a 290 mm band, the only signal is the wet probe at one point [A5]. The drain head cannot rise higher, because the road slab and grate frame sit above it. In practice a basin in that band is surcharging, the wet probe says so, and the street head reads the water once it reaches the road. Under FLG-DDR-002, R3 now asks for a continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that, so R3 is met on paper.
+- **Vehicle clearance.** At 2.95 m (v0.1) the head was inside the envelope of a 4.0 to 4.3 m vehicle parked or passing at the curb. Under FLG-DDR-002 the reference lens height is 4.6 m, which clears a 4.3 m vehicle with the 0.3 m margin [A7]. Each site sets its own height within 2.5 to 5.0 m to the road authority's clearance rule. The site needs a pole about 4.9 m tall above the sidewalk; a shorter sign pole only suits a curb lane without tall vehicles.
 
 ## B. Street depth error (R2)
 
-- **Radar.** The error budget is module ±2.0 mm (assumed), datum ±5.0 mm, pole expansion ±1.29 mm and surface ripple ±3.0 mm, which gives ±6.3 mm root sum square and ±11.3 mm if every term is at its worst at once [B1]. R2 (±10 mm) is met on paper by the root sum square, with the module accuracy still unverified.
-- **Ultrasonic variant, uncompensated.** Calibrated at 20 °C, the range error is +224 mm at -20 °C and -148 mm at 50 °C, because the speed of sound runs from 319.2 to 361.6 m/s [B2].
-- **Ultrasonic variant, compensated.** With an air sensor within ±3 K of the air column, the temperature term is ±15.6 mm and the total ±19.5 mm [B3]. R2 is not met by the ultrasonic variant, which confirms the choice of radar (D3). Sun on the road makes the ±3 K figure itself optimistic.
+- **Radar.** The error budget is module ±2.0 mm (assumed), datum ±5.0 mm, pole expansion ±1.98 mm (the arm is now 4.71 m up) and surface ripple ±3.0 mm, which gives ±6.5 mm root sum square and ±12.0 mm if every term is at its worst at once [B1]. R2 (±10 mm) is met on paper by the root sum square, with the module accuracy still unverified.
+- **Ultrasonic variant, uncompensated.** Calibrated at 20 °C, the range error is +349 mm at -20 °C and -231 mm at 50 °C, because the speed of sound runs from 319.2 to 361.6 m/s [B2].
+- **Ultrasonic variant, compensated.** With an air sensor within ±3 K of the air column, the temperature term is ±24.4 mm and the total ±27.0 mm at the 4.6 m height [B3]. R2 is not met by the ultrasonic variant, which confirms the choice of radar (D3). Sun on the road makes the ±3 K figure itself optimistic.
 - **Arm deflection.** The 40 x 40 x 2 mm arm (I = 73,365 mm⁴) moves 0.20 mm under a 1 kg bird at the head even without the brace [B4]; negligible.
 
 ## C. Drain level and stilling tube (R4, R3)
@@ -113,18 +119,19 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 ## H. Arm, brace and clamps (R15)
 
-- **Wind twist.** Wind along the street at 35 m/s puts 42.3 N on the arm, 6.2 N on the head and 19.0 N on the brace, twisting the arm about the pole with 24.9 N·m [H1]. Two band clamps at 1,000 N preload hold 36.0 N·m by friction, a factor of only 1.45 [H2]. A twisted arm moves the head along the street, not up or down, so it does not bias the depth, but it would put the head over a different part of the gutter. Proposed, awaiting Amish: add an anti-rotation stop (a through-bolt or a clamp with a pin) at TRL 4 design detail.
+- **Wind twist.** Wind along the street at 35 m/s puts 42.3 N on the arm, 6.2 N on the head and 19.0 N on the brace, twisting the arm about the pole with 24.9 N·m [H1]. Two band clamps at 1,000 N preload hold 36.0 N·m by friction, a factor of only 1.45 [H2]. A twisted arm moves the head along the street, not up or down, so it does not bias the depth, but it would put the head over a different part of the gutter or the traffic lane.
+- **Anti-rotation bolt (FLG-DDR-002).** An M8 A4-70 through-bolt through the lower clamp band and the pole carries 15.4 kN in shear per plane; the pole wall bears 18.0 kN with an assumed 2.5 mm wall. The lower of the two, acting as a couple across the 60 mm pole, resists 922 N·m, a factor of 37 against the wind twist [H2b]. Drilling the pole needs the asset owner's permission.
 - **Misuse.** A 50 kg person hanging on the head gives 132 N·m at the brace joint and 36 MPa in the arm against 214 MPa (factor 5.9); the brace carries 1,213 N against a buckling load of 43,529 N [H3]. The upper clamp pulls 858 N against a band capacity of 2,000 N (factor 2.3), and 1,200 N of slip resistance holds 520 N down [H4].
 
 ## I. Mass on the pole (R15)
 
-- **Items.** FieldNode 2.41 kg (FND-CAL-001), arm tube 0.66 kg and brace 0.25 kg (from the model), clamps 0.30 kg, saddle 0.10 kg, radar head 0.25 kg, cables 0.14 kg and 0.17 kg, marker plate 0.33 kg [I1].
-- **Total.** 4.62 kg against 5.0 kg, an 8 % margin [I2]. R15 is met on paper, but the TRL 2 figure of 3.1 kg was low because it used the old FieldNode estimate of 1.7 kg.
+- **Items.** FieldNode 2.41 kg (FND-CAL-001), arm tube 0.66 kg and brace 0.25 kg (from the model), clamps 0.30 kg, saddle 0.10 kg, radar head 0.25 kg, street cable 0.21 kg (3 m), drain cable on the pole 0.18 kg, through-bolt 0.05 kg, marker plate 0.33 kg [I1].
+- **Total.** 4.74 kg against 5.0 kg, a 5 % margin (v0.1: 4.62 kg) [I2]. R15 is met on paper. FieldNode's proposed 0.15 kg sun shield would take it to 4.89 kg, still inside the limit.
 
 ## J. Cables and ports (R11 context)
 
-- **Street cable.** 1,380 mm of run plus 300 mm of drip loops fits the 2 m cable; the I2C bus is about 250 pF against the 400 pF limit [J1].
-- **Drain cable.** 3,260 mm of run plus 500 mm of loops fits the 5 m cable, which carries UART and the analog wet probe [J2].
+- **Street cable.** With the head at 4.6 m and the FieldNode center at 3.0 m, the run is 2,380 mm; with 300 mm of drip loops it fits a 3 m cable, and the I2C bus is about 350 pF against the 400 pF limit [J1]. Leaving the FieldNode at 2.35 m would have needed a 5 m cable and about 550 pF, over the limit, which is why the node moved up.
+- **Drain cable.** The surface route is 4,100 mm; with 500 mm of loops it fits the 5 m cable, which carries UART and the analog wet probe [J2].
 - **Ports.** The street head uses port A at 3.3 V (I2C) and the drain head port B at 5 V (UART plus the analog pin), consistent with FieldNode's one switched rail per port [J3].
 
 ## K. Submersion (R9)
@@ -133,13 +140,13 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 ## L. Installation (R12)
 
-- **Surface work.** Traffic protection 10 min, arm and brace 15 min, FieldNode and street head 15 min, marker 5 min, survey and dry background 10 min, grate lift 5 min, two wall anchors drilled through the grate opening 20 min, tube and head 10 min: 90 min in all, with no margin [L1].
-- **Conduit.** Coring 32 mm through the basin wall needs excavation outside the wall or entry into the basin, then a 0.56 m trench or bore under the sidewalk [L2]. That is civil work by another crew. R12 is not met.
-- Proposed, awaiting Amish: for pilots, route the drain cable out through the gap at the grate frame and along the curb face under a bolted steel cover, avoiding coring and trenching; keep the conduit for permanent sites installed with road works.
+- **Surface work.** Traffic protection 10 min, arm and brace from a mobile platform 15 min, anti-rotation bolt 5 min, FieldNode and street head 15 min, marker 5 min, survey and dry background 10 min, grate lift 5 min, two wall anchors drilled through the grate opening 20 min, tube and head 10 min, surface cable cover 25 min: 120 min in all [L1].
+- **Cable route (FLG-DDR-002).** For pilots the drain cable leaves the basin at the grate frame and runs under 0.76 m of bolted steel cover across the gutter strip, up the curb face and across the sidewalk to a riser guard at the pole. The anchors go into the curb and sidewalk only, none into the road [L2]. The conduit (coring the basin wall and a 0.56 m trench) is kept for permanent sites installed with road works.
+- **R12 is still not met,** now on time alone: 120 min against 90 min, with no civil work. A new proposal is in `docs/REVIEW.md`.
 
 ## M. Cost (R16)
 
-- The BOM has 10 lines, all priced. FloodGauge-specific parts (lines 2 to 10) cost $145.50 against the $150 in `project.yaml`, a margin of $4.50; with the $126.00 FieldNode core, a complete gauge costs $271.50 [M1]. R16, restated under D1 to cover FloodGauge-specific parts only, is met on paper with a thin margin. Radar module and housing prices are indicative.
+- The BOM has 10 lines, all priced. FloodGauge-specific parts (lines 2 to 10) cost $153.50 against the $150 in `project.yaml`, $3.50 over; with the $126.00 FieldNode core, a complete gauge costs $279.50 [M1]. The surface cable cover ($14.00, replacing the $8.00 conduit) and the through-bolt ($2.00) account for the rise from $145.50. R16 is not met. Radar module, housing and cover prices are indicative.
 
 ## Results
 
@@ -147,27 +154,38 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 | ID | Requirement | Value | Target | Status |
 | --- | --- | --- | --- | --- |
-| R3 | Drain level range | Continuous to 330 mm below the road; top 290 mm wet probe only | 50 mm above floor to grate underside | **Not met** |
-| R12 | Installation | 90 min without the conduit; conduit is civil work | 90 min, surface only, no basin entry | **Not met** |
+| R12 | Installation | 120 min on the surface route; no civil work | 90 min, surface only, no basin entry | **Not met** |
+| R16 | Cost | $153.50 FloodGauge-specific; $279.50 with FieldNode | $150 FloodGauge-specific | **Not met** |
 | R7 | Airtime | 23.7 s/day at SF9; event 1 % met SF7 to SF10, not SF11 or SF12 | 1 % always; TTN 30 s/day in normal mode | At risk |
 | R9 | Drain head submersion | Potted head; transducer face seal IP67 only | IP68, 2 m, 72 h | At risk |
 | R14 | Operating environment | FieldNode R2 and R3 heat findings (inherited); A02YYUW rated -15 to 60 °C | -20 to 50 °C | At risk |
 | R10 | False readings | Rules defined; curb echo needs a recorded background | 1 false alert per year or fewer | Not verifiable at TRL 3 |
-| R1 | Street depth range | 2.95 to 2.35 m range; module to 20 m | 0 to 600 mm; head 2.5 to 3.5 m | Met on paper |
-| R2 | Street depth accuracy | Radar ±6.3 mm (sum ±11.3 mm), module accuracy assumed; ultrasonic variant ±19.5 mm | ±10 mm | Met on paper |
+| R1 | Street depth range | Lens 4.60 m clears a 4.3 m vehicle; range 1.9 to 5.0 m over the band; module to 20 m | 0 to 600 mm; head 2.5 to 5.0 m per site | Met on paper |
+| R2 | Street depth accuracy | Radar ±6.5 mm (sum ±12.0 mm), module accuracy assumed; ultrasonic variant ±27.0 mm | ±10 mm | Met on paper |
+| R3 | Drain level range | Continuous from 1,250 to 330 mm below the road; wet probe at 310 mm | 50 mm above floor to 330 mm below road, drain-full above | Met on paper |
 | R4 | Drain level accuracy | ±11.0 mm with NTC; ±19.7 mm without | ±20 mm | Met on paper |
 | R6 | Alert latency | 82 s at the 95th percentile; 110 s worst without packet loss | 120 s, 95 % of events | Met on paper (private gateway) |
 | R8 | Energy autonomy | 68 days nominal, 47 days at -20 °C | 5 days at event sampling | Met on paper |
 | R13 | Level datum | Tape and radar dry-background survey; yearly marker check | ±5 mm | Met on paper |
-| R15 | Mounting | 4.62 kg; clamp twist factor 1.45 | 40 to 60 mm poles; 5 kg | Met on paper |
-| R16 | Cost | $145.50 FloodGauge-specific; $271.50 with FieldNode | $150 FloodGauge-specific | Met on paper |
+| R15 | Mounting | 4.74 kg; twist factor 37 with the through-bolt | 40 to 60 mm poles; 5 kg | Met on paper |
 | R5 | Sampling rate | 60 s and 10 s schedule in the sampling logic | 60 s; 10 s in events | Met by design |
 | R11 | Privacy | Levels, status and battery only | No camera or microphone | Met by design |
 | R17 | Open data | JSON or CSV through the gateway | Open format | Met by design |
 
 Counts: 2 not met, 3 at risk, 1 not verifiable at TRL 3, 8 met on paper, 3 met by design.
 
-## Changes to the TRL 2 figures
+## Changes in v0.2 (FLG-DDR-002)
+
+- Lens height 2.95 m to 4.6 m; R1 band 2.5 to 3.5 m to 2.5 to 5.0 m, set per site. R1 stays met; the vehicle clearance problem is closed.
+- FieldNode center 2.35 m to 3.0 m; street cable 2 m to 3 m (I2C about 250 to 350 pF).
+- R3 restated; not met to met on paper.
+- Cable route: conduit (civil work) to a surface cover for pilots. R12 installation 90 min plus civil work to 120 min with none; still not met.
+- Anti-rotation M8 through-bolt: twist factor 1.45 to 37.
+- Mass on the pole 4.62 kg to 4.74 kg.
+- FloodGauge-specific cost $145.50 to $153.50; complete gauge $271.50 to $279.50. R16 met to not met.
+- Street depth error, radar ±6.3 mm to ±6.5 mm (pole expansion over the taller height).
+
+## Changes to the TRL 2 figures (v0.1)
 
 - Parts cost: FloodGauge-specific $145.50 (was about $145) after adding an NTC to the drain head; complete gauge $271.50 (was about $271).
 - Mass on the pole: 4.62 kg (was about 3.1 kg), because FieldNode is now 2.41 kg.

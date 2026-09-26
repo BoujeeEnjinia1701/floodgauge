@@ -1,4 +1,4 @@
-"""FloodGauge general arrangement sheet FLG-DWG-001, Rev P1 (TRL 3).
+"""FloodGauge general arrangement sheet FLG-DWG-001, Rev P2 (TRL 3, FLG-DDR-002 decisions applied).
 
 Run from the repo root:  python cad/src/sheets.py
 Writes cad/drawings/FLG-DWG-001.svg, .pdf and .png from the parametric model in cad/src/model.py
@@ -90,11 +90,12 @@ def main():
     S = site()
     kit = list(K.values()) + list(Bd.values())
     overall = Compound(children=kit + [S["pole"], S["basin"], S["grate"]])
-    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P1",
+    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P2",
               author="Amish Chadha", date=DATE, scale=1 / 50, theme="technical",
               material="Aluminium arm, PVC tube, bought-in heads per bom/bom.csv; existing street shown for context. "
                        "PRELIMINARY, NOT FOR FABRICATION",
-              revisions=[("P1", "Preliminary GA for TRL 3 (from cad/src/model.py)", DATE, "AC")])
+              revisions=[("P1", "Preliminary GA for TRL 3 (from cad/src/model.py)", DATE, "AC"),
+                         ("P2", "DDR-002: lens 4.6 m, node 3.0 m, surface cable cover, anti-rotation bolt", DATE, "AC")])
     L = []
     L.append(_t(16, 24, "PRELIMINARY, NOT FOR FABRICATION", 2.6, 600, "#B45309"))
 
@@ -131,12 +132,12 @@ def main():
     L += leader(X(0), Z(zt) + 2, X(0) + 3, Z(zt) - 4, "CURB FACE")
     # ---------------- Detail A: street head, arm and node, 1:10
     ka = 1 / 10
-    stub = Pos(P["pole_x"], 0, 2750) * Box(P["pole_od"], P["pole_od"], 1000) & S["pole"]
-    detA = Compound(children=[K["node"], K["panel"], K["street_head"], K["arm"], stub])
+    stub = Pos(P["pole_x"], 0, P["arm_z"] - 200) * Box(P["pole_od"], P["pole_od"], 700) & S["pole"]
+    detA = Compound(children=[K["street_head"], K["arm"], stub])
     bba = detA.bounding_box()
     fa = project(detA, "front", "a_front")
     xa, ya = 118.0, 36.0
-    aw, ah = place(s, fa, xa, ya, ka, "Detail A: street head, arm and FieldNode", "Scale 1:10; front view")
+    aw, ah = place(s, fa, xa, ya, ka, "Detail A: street head, arm and clamps", "Scale 1:10; front view")
     Xa = lambda mx: xa + (mx - bba.min.X) * ka
     Za = lambda mz: ya + ah - (mz - bba.min.Z) * ka
     L += [ext(Xa(D["arm_x0"]), Za(D["arm_top"]), Xa(D["arm_x0"]), Za(D["arm_top"] + 70)),
@@ -150,8 +151,7 @@ def main():
     L += dim_v(xcl, Za(P["arm_z"]), Za(zc2), f"{P['clamp_dz']:.0f} clamps", side=1)
     L += leader(Xa(D["head_x"]), Za(P["head_z"]), Xa(D["head_x"]) + 3, Za(P["head_z"]) + 18,
                 f"2 RADAR HEAD D{P['head_d']:.0f}", "start")
-    L += leader(Xa(D["node_x"] - P["enc"][0] / 2), Za(P["node_z"]), Xa(D["node_x"] - P["enc"][0] / 2) - 10, Za(P["node_z"]),
-                f"1 FIELDNODE {P['enc'][1]:.0f} x {P['enc'][0]:.0f} x {P['enc'][2]:.0f}", "end")
+    L += leader(Xa(P["pole_x"]), Za(zc2), Xa(P["pole_x"]) + 8, Za(zc2) + 8, "M8 THROUGH-BOLT, ANTI-ROTATION", "start")
     L += leader(Xa(-100), Za(P["arm_z"] - P["arm_sq"] / 2), Xa(-100) + 3, Za(P["arm_z"]) + 5,
                 f"3 ARM {P['arm_sq']:.0f} x {P['arm_sq']:.0f} x {P['arm_wall']:.0f}", "start")
     L += leader(Xa(D["pole_face_x"] - P["brace_leg"] / 2), Za(P["arm_z"] - P["brace_leg"] / 2),
@@ -196,9 +196,9 @@ def main():
         f"Arm {P['arm_sq']:.0f} sq x {D['arm_len']:.0f}; band clamps {P['clamp_dz']:.0f} apart",
         f"Tube {P['tube_od']:.0f} OD, ID {D['tube_id']:.0f}, {D['tube_len']:.0f} long, 40 slots 5 x 50",
         f"Drain reading {-D['dh_top_level']:.0f} to {-(P['basin_floor'] + 50):,.0f} below road; probe {-D['probe_level']:.0f}",
-        f"Conduit {P['conduit_od'] - 3:.0f} at {-P['conduit_z']:.0f} below road; riser guard",
+        f"Pilot cable route: steel cover {D['cover_len']:,.0f} long, curb and sidewalk anchors; riser guard",
         "Marker bands 150 to 300 amber, 300 to 450 red",
-        "Lens height to road authority rules (FLG-CAL-001 A7)",
+        f"Lens height {P['head_band'][0]:,.0f} to {P['head_band'][1]:,.0f} per site, clearance rule (FLG-CAL-001 A7)",
     ], x=276, y=150, width=146)
     out = s.save(ROOT / "cad" / "drawings" / "FLG-DWG-001")
     shutil.rmtree(WORK, ignore_errors=True)

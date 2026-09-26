@@ -1,4 +1,4 @@
-"""FloodGauge sizing calculations, FLG-CAL-001 v0.1 (TRL 3).
+"""FloodGauge sizing calculations, FLG-CAL-001 v0.2 (TRL 3, FLG-DDR-002 decisions applied).
 
 Run from the repo root:  python docs/04-calcs/sizing.py
 Prints every number quoted in docs/04-calcs/01-sizing.md; each line carries a tag such as [B2]
@@ -74,8 +74,12 @@ BAND_PRELOAD, MU = 1000.0, 0.30    # N per band clamp (FND-CAL-001 assumption), 
 HANG = 490.0                  # N, a 50 kg person hanging on the arm tip (misuse case)
 VEH_H = (4.0, 4.3)            # m, tall vehicle envelope (typical legal limits; confirm locally)
 VEH_MARGIN = 0.3              # m, clearance margin above the vehicle envelope (assumed)
+BOLT_AS, BOLT_FUB = 36.6, 700.0    # mm2, MPa: M8 stainless A4-70 through-bolt (DDR-002)
+POLE_T, POLE_FU = 2.5, 360.0       # mm, MPa: pole wall and steel strength at the bolt holes (assumed)
+CABLE_PF = 100.0              # pF/m, outdoor multicore cable (assumed)
+CABLE_KG = 0.07               # kg/m
 
-print("FloodGauge sizing, FLG-CAL-001 v0.1")
+print("FloodGauge sizing, FLG-CAL-001 v0.2")
 print(f"Geometry from cad/src/model.py: lens {P['head_z']:.0f} mm above the road, {P['head_offset']:.0f} mm past the curb face; "
       f"tube {D['tube_len']:.0f} mm, ID {D['tube_id']:.0f} mm")
 
@@ -83,6 +87,9 @@ print(f"Geometry from cad/src/model.py: lens {P['head_z']:.0f} mm above the road
 print("\nA. Geometry and range (R1, R3)")
 tag("A1", f"street head range: {D['range_dry'] / 1000:.2f} m to the dry road, {D['range_600'] / 1000:.2f} m at 600 mm depth; "
           f"radar module range up to 20 m (Acconeer); depth = {P['head_z']:.0f} mm minus range")
+hb0, hb1 = P["head_band"]
+tag("A1b", f"R1 mounting band {hb0 / 1000:.1f} to {hb1 / 1000:.1f} m: range {(hb0 - 600) / 1000:.1f} to {hb1 / 1000:.1f} m over the band, "
+           f"within the 20 m module range; beam footprint radius {hb1 * math.tan(math.radians(BEAM_FULL / 2)):.0f} mm at {hb1 / 1000:.1f} m")
 r_fp = P["head_z"] * math.tan(math.radians(BEAM_FULL / 2))
 curb_slant = math.hypot(P["head_offset"], P["head_z"] - P["curb_h"])
 tag("A2", f"beam footprint radius at the road {r_fp:.0f} mm (assumed {BEAM_FULL:.0f} deg beam); curb face {P['head_offset']:.0f} mm away is inside it; "
@@ -95,12 +102,15 @@ tag("A4", f"drain head: face {-D['dh_face']:.0f} mm below the road; ultrasonic r
           f"wet probe trips at {D['probe_level']:.0f} mm")
 gap = D["dh_top_level"] - D["grate_under"]
 tag("A5", f"grate underside at {D['grate_under']:.0f} mm: band from {D['dh_top_level']:.0f} to {D['grate_under']:.0f} mm "
-          f"({-gap:.0f} mm) has only the wet probe (one point); R3 asks for a continuous reading to the grate")
+          f"({-gap:.0f} mm) has only the wet probe (one point); R3 as restated under DDR-002 asks for a continuous reading to "
+          f"{-D['dh_top_level']:.0f} mm below the road plus a drain-full signal above that")
 tag("A6", f"tube mouth {P['tube_bot_gap']:.0f} mm above the floor, outlet invert {D['outlet_invert'] - P['basin_floor']:.0f} mm above the floor; "
           f"the 50 mm level lies {P['tube_bot_gap'] - 50:.0f} mm below the mouth, in the beam path")
 clear_need = VEH_H[1] + VEH_MARGIN
-tag("A7", f"head underside {P['head_z'] / 1000:.2f} m is inside a {VEH_H[0]:.1f} to {VEH_H[1]:.1f} m vehicle envelope at the curb; "
-          f"clear mounting needs about {clear_need:.1f} m; range there {clear_need:.1f} m, within radar range; R1 band (2.5 to 3.5 m) excludes it")
+clears = P["head_z"] / 1000 >= clear_need - 1e-9
+tag("A7", f"head underside {P['head_z'] / 1000:.2f} m against a {VEH_H[0]:.1f} to {VEH_H[1]:.1f} m vehicle envelope at the curb plus {VEH_MARGIN:.1f} m: "
+          f"needs {clear_need:.1f} m, {'clear' if clears else 'NOT clear'}; inside the R1 band {hb0 / 1000:.1f} to {hb1 / 1000:.1f} m; "
+          f"at 2.95 m (the TRL 3 v0.1 height) the head would be inside the envelope")
 
 # ------------------------------------------------------------------ B. Street depth error (R2)
 print("\nB. Street depth error (R2)")
@@ -243,7 +253,13 @@ torque = f_arm * lev_arm / 1000 + f_head * D["cantilever"] / 1000 + f_brace * le
 t_cap = 2 * MU * 2 * BAND_PRELOAD * D["pole_r"] / 1000
 tag("H1", f"wind along the street at 35 m/s (q {Q_WIND:.0f} Pa): arm {f_arm:.1f} N, head {f_head:.1f} N, brace {f_brace:.1f} N; "
           f"twist about the pole {torque:.1f} N m")
-tag("H2", f"two band clamps at {BAND_PRELOAD:.0f} N preload, friction {MU}: twist capacity {t_cap:.1f} N m, factor {t_cap / torque:.2f}")
+tag("H2", f"two band clamps at {BAND_PRELOAD:.0f} N preload, friction {MU}: twist capacity {t_cap:.1f} N m, factor {t_cap / torque:.2f} on friction alone")
+f_shear = 0.6 * BOLT_FUB * BOLT_AS
+f_bear = 2.5 * POLE_FU * P["bolt_d"] * POLE_T
+f_bolt = min(f_shear, f_bear)
+t_bolt = f_bolt * P["pole_od"] / 1000
+tag("H2b", f"M8 through-bolt at the lower clamp: shear {f_shear / 1000:.1f} kN per plane, pole wall bearing {f_bear / 1000:.1f} kN "
+           f"({POLE_T} mm wall assumed); couple across the {P['pole_od']:.0f} mm pole {t_bolt:.0f} N m, factor {t_bolt / torque:.0f} against wind twist")
 brace_x = D["pole_face_x"] - P["brace_leg"]
 m_tip = HANG * (brace_x - D["head_x"]) / 1000
 z_arm = arm_I / (P["arm_sq"] / 2)
@@ -268,19 +284,22 @@ masses = {
     "band clamps and brackets, 2 (assumed)": 0.30,
     "head saddle and fixings (assumed)": 0.10,
     "street radar head (assumed)": 0.25,
-    "street cable 2 m at 0.07 kg/m": 0.14,
-    "drain cable on the pole, 2.5 m at 0.07 kg/m": 0.175,
+    "street cable 3 m": 3.0 * CABLE_KG,
+    "drain cable on the pole": (D["node_bot"] - D["riser_top"] + 250) / 1000 * CABLE_KG,
+    "M8 through-bolt, nut and washers (assumed)": 0.05,
     "depth marker plate (model)": P["marker"][0] * P["marker"][1] * P["marker"][2] * RHO_AL,
 }
 tot = sum(masses.values())
 tag("I1", "; ".join(f"{k} {v:.2f}" for k, v in masses.items()) + " kg")
-tag("I2", f"total on the pole {tot:.2f} kg against 5.0 kg ({(5.0 - tot) / 5.0 * 100:.0f} % margin); TRL 2 estimate was 3.1 kg with FieldNode at 1.7 kg")
+tag("I2", f"total on the pole {tot:.2f} kg against 5.0 kg ({(5.0 - tot) / 5.0 * 100:.0f} % margin); v0.1 gave 4.62 kg; "
+          f"with FieldNode's proposed 0.15 kg sun shield {tot + 0.15:.2f} kg")
 
 # ------------------------------------------------------------------ J. Cables and interface (R11 context)
 print("\nJ. Cables and ports")
-tag("J1", f"street cable run {D['cable_street']:.0f} mm plus 300 mm drip loops: {(D['cable_street'] + 300) / 1000:.2f} m in a 2 m cable; "
-          f"I2C bus about {2 * 100 + 50:.0f} pF against 400 pF")
-tag("J2", f"drain cable run {D['cable_drain']:.0f} mm plus 500 mm loops: {(D['cable_drain'] + 500) / 1000:.2f} m in a 5 m cable; UART and one analog pin (wet probe)")
+tag("J1", f"street cable run {D['cable_street']:.0f} mm plus 300 mm drip loops: {(D['cable_street'] + 300) / 1000:.2f} m in a 3 m cable; "
+          f"I2C bus about {3 * CABLE_PF + 50:.0f} pF against 400 pF (a 5 m cable would give {5 * CABLE_PF + 50:.0f} pF)")
+tag("J2", f"drain cable run on the surface route {D['cable_drain']:.0f} mm plus 500 mm loops: {(D['cable_drain'] + 500) / 1000:.2f} m in a 5 m cable; "
+          f"UART and one analog pin (wet probe)")
 tag("J3", "port use: street head on port A at 3.3 V (I2C); drain head on port B at 5 V (UART plus analog wet probe); one switched rail per port (FND R11)")
 
 # ------------------------------------------------------------------ K. Submersion (R9)
@@ -291,14 +310,16 @@ tag("K1", f"deepest design case: water 600 mm above the road puts {head_max:.2f}
 
 # ------------------------------------------------------------------ L. Installation (R12)
 print("\nL. Installation (R12)")
-tasks = [("Set up pedestrian and traffic protection", 10), ("Fit clamps, arm and brace from a ladder", 15),
+tasks = [("Set up pedestrian and traffic protection", 10), ("Fit clamps, arm and brace from a mobile platform", 15),
+         ("Drill the pole and fit the anti-rotation through-bolt", 5),
          ("Hang FieldNode and plug the street head (FND-CAL-001 install)", 15), ("Fix marker plate", 5),
          ("Survey head height and record dry background", 10), ("Lift grate with hook, two people", 5),
-         ("Drill two wall anchors through the grate opening with an extension", 20), ("Fit tube and drain head, close grate", 10)]
+         ("Drill two wall anchors through the grate opening with an extension", 20), ("Fit tube and drain head, close grate", 10),
+         ("Fit the surface cable cover: curb face and sidewalk anchors, riser guard", 25)]
 t_no = sum(t for _, t in tasks)
-tag("L1", "; ".join(f"{a} {t} min" for a, t in tasks) + f"; total {t_no} min without the conduit")
-tag("L2", "conduit: core 32 mm through the basin wall (needs excavation outside the wall or entry), trench or bore about "
-          f"{(P['pole_x'] + 60 - P['basin'][1]) / 1000:.2f} m under the sidewalk: civil crew, well over 90 min")
+tag("L1", "; ".join(f"{a} {t} min" for a, t in tasks) + f"; total {t_no} min with the surface cable route, no civil work")
+tag("L2", f"surface cover {D['cover_len'] / 1000:.2f} m (gutter strip, curb face, sidewalk); anchors in the curb and sidewalk only, none in the road; "
+          f"the conduit (coring the basin wall and a {(D['riser_x'] - P['basin'][1]) / 1000:.2f} m trench) is kept for permanent sites with road works")
 
 # ------------------------------------------------------------------ M. Cost (R16)
 print("\nM. Cost (R16)")
@@ -315,9 +336,9 @@ tag("M1", f"BOM {len(rows)} lines, all priced: {priced}; FloodGauge-specific (li
 # ------------------------------------------------------------------ status table
 print("\n[S] Requirement status")
 status = [
-    ("R1", "Met on paper", f"{D['range_dry'] / 1000:.2f} to {D['range_600'] / 1000:.2f} m range; module to 20 m", "0 to 600 mm; head 2.5 to 3.5 m"),
+    ("R1", "Met on paper", f"lens {P['head_z'] / 1000:.2f} m clears a {VEH_H[1]:.1f} m vehicle; range {(hb0 - 600) / 1000:.1f} to {hb1 / 1000:.1f} m over the band; module to 20 m", "0 to 600 mm; head 2.5 to 5.0 m per site"),
     ("R2", "Met on paper (module accuracy assumed)", f"radar RSS ±{rss_r:.1f} mm, sum ±{lin_r:.1f} mm; ultrasonic variant ±{rss_u:.1f} mm", "±10 mm"),
-    ("R3", "Not met", f"continuous to {-D['dh_top_level']:.0f} mm below the road; top {-gap:.0f} mm wet probe only", "50 mm above floor to grate underside"),
+    ("R3", "Met on paper", f"continuous {P['basin_floor'] + 50:.0f} to {D['dh_top_level']:.0f} mm; wet probe at {D['probe_level']:.0f} mm", "50 mm above floor to 330 mm below road, drain-full above"),
     ("R4", "Met on paper", f"±{rss_d:.1f} mm with NTC; ±{rss_du:.1f} mm without", "±20 mm"),
     ("R5", "Met by design", "60 s and 10 s schedule set in the sampling logic", "60 s; 10 s in events"),
     ("R6", "Met on paper (private gateway)", f"worst {worst:.0f} s without packet loss", "120 s, 95 % of events"),
@@ -326,11 +347,11 @@ status = [
     ("R9", "At risk", "potted head; transducer face seal IP67 only", "IP68, 2 m, 72 h"),
     ("R10", "Not verifiable at TRL 3", "rules defined; curb echo needs a recorded background", "1 false alert per year or fewer"),
     ("R11", "Met by design", "levels, status and battery only", "no camera or microphone"),
-    ("R12", "Not met", f"{t_no} min without conduit; conduit is civil work", "90 min, surface only, no basin entry"),
+    ("R12", "Not met" if t_no > 90 else "Met on paper", f"{t_no} min on the surface route; no civil work", "90 min, surface only, no basin entry"),
     ("R13", "Met on paper", "tape and radar dry-background survey; yearly marker check", "±5 mm"),
     ("R14", "At risk", "FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C", "-20 to 50 C"),
-    ("R15", "Met on paper", f"{tot:.2f} kg; clamp twist factor {t_cap / torque:.2f}", "40 to 60 mm poles; 5 kg"),
-    ("R16", "Met on paper", f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", "$150 FloodGauge-specific"),
+    ("R15", "Met on paper", f"{tot:.2f} kg; twist factor {t_bolt / torque:.0f} with the through-bolt", "40 to 60 mm poles; 5 kg"),
+    ("R16", "Met on paper" if spec <= budget else "Not met", f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", "$150 FloodGauge-specific"),
     ("R17", "Met by design", "JSON or CSV through the gateway", "open format"),
 ]
 with (ROOT / "docs" / "04-calcs" / "results.csv").open("w", newline="") as f:

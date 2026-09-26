@@ -3,7 +3,7 @@ doc_id: FLG-REQ-001
 title: FloodGauge requirements
 project: FloodGauge
 doc_type: Requirements
-version: "0.3"
+version: "0.4"
 status: Draft
 date: '2026-09-25'
 author: Amish Chadha
@@ -21,19 +21,23 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: TRL 3 status from FLG-CAL-001; R16 restated to FloodGauge-specific parts under FLG-DDR-001 D1
+- version: "0.4"
+  date: '2026-09-25'
+  author: Amish Chadha
+  change: Recommendations accepted by Amish (DDR-002)
 ---
 
 # FloodGauge requirements
 
-These requirements are checked by calculation in FLG-CAL-001 v0.1. The design choices behind them are adopted for TRL 3 work under Amish's 2026-09-25 instruction, open for his review (FLG-DDR-001). One target changed at TRL 3: R16 now covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo (D1). Two further changes to targets are proposed, awaiting Amish, and are not applied: R1 and R3 (see below). The status column states "not met" plainly.
+These requirements are checked by calculation in FLG-CAL-001 v0.2. The design choices behind them were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002). Three targets have changed at TRL 3: R16 covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo (DDR-001 D1); R1 allows a mounting height of 2.5 to 5.0 m, set per site to the road authority's clearance rule; and R3 is restated to the reach of the drain head plus a drain-full signal (both DDR-002). The status column states "not met" plainly.
 
 Table 1. Requirements and status at TRL 3
 
 | ID | Requirement | Target | Verification (TRL 3 or later) | Status (FLG-CAL-001) |
 | --- | --- | --- | --- | --- |
-| R1 | Measure water depth on the street at the gauge point | 0 to 600 mm above the road surface, head mounted 2.5 to 3.5 m above the road | Range calculation against sensor data | Met on paper: 2.95 to 2.35 m range, radar to 20 m. The 3.5 m upper limit may conflict with vehicle clearance (proposal below) |
-| R2 | Street depth accuracy | ±10 mm over -20 to 50 °C air, still water | Error budget; later bench test over a tank | Met on paper with radar: ±6.3 mm root sum square (±11.3 mm worst-case sum), module accuracy assumed. **Not met** by the ultrasonic variant (±19.5 mm compensated) |
-| R3 | Measure water level in the catch basin | From 50 mm above the basin floor to the underside of the grate | Geometry of stilling tube and head | **Not met:** continuous from 50 mm above the floor to 330 mm below the road; the top 290 mm is covered by the wet probe only |
+| R1 | Measure water depth on the street at the gauge point | 0 to 600 mm above the road surface, head mounted 2.5 to 5.0 m above the road at the height the road authority's clearance rule sets for the site | Range calculation against sensor data | Met on paper: reference lens at 4.6 m clears a 4.3 m vehicle; range 1.9 to 5.0 m over the band, radar to 20 m |
+| R2 | Street depth accuracy | ±10 mm over -20 to 50 °C air, still water | Error budget; later bench test over a tank | Met on paper with radar: ±6.5 mm root sum square (±12.0 mm worst-case sum), module accuracy assumed. **Not met** by the ultrasonic variant (±27.0 mm compensated at 4.6 m) |
+| R3 | Measure water level in the catch basin | Continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that | Geometry of stilling tube and head | Met on paper: continuous from 1,250 to 330 mm below the road; wet probe trips at 310 mm |
 | R4 | Drain level accuracy | ±20 mm | Error budget | Met on paper: ±11.0 mm with the NTC in the head (±19.7 mm without) |
 | R5 | Sampling rate | Every 60 s normally; every 10 s when level is above the first alert band or rising faster than 20 mm/min | Sampling logic review | Met by design |
 | R6 | Alert latency | 120 s or less from threshold crossing to message at the alert service, 95 % of events | Latency budget | Met on paper: 82 s at the 95th percentile on a private gateway (85 s on a city server); 110 s worst case without a lost packet |
@@ -42,11 +46,11 @@ Table 1. Requirements and status at TRL 3
 | R9 | Survive submersion of the drain head | IP68, 2 m, 72 h, stormwater with silt | Enclosure design review; later immersion test | **At risk:** electronics potted, but the transducer face keeps the module's IP67 seal |
 | R10 | Reject false readings | No alert caused by a vehicle, person or debris under the street head; target 1 false alert per gauge per year or fewer | Plausibility logic review; later field log | Not verifiable at TRL 3: rules defined, including a recorded dry-road background against the curb echo |
 | R11 | Privacy | Levels, status and battery only; no camera or microphone; no images or audio leave the device | Design review | Met by design |
-| R12 | Installation | Two-person crew, 90 min or less, from the surface; no road drilling; no entry into the catch basin | Installation sequence review | **Not met:** 90 min for the surface work alone; the conduit needs coring and trenching |
+| R12 | Installation | Two-person crew, 90 min or less, from the surface; no road drilling; no entry into the catch basin | Installation sequence review | **Not met:** 120 min on the surface cable route, with no civil work (DDR-002) |
 | R13 | Level datum | Head height surveyed to the road surface at the gauge point within ±5 mm; checked yearly against the depth marker | Survey method | Met on paper: tape survey plus a recorded dry-road radar reading |
 | R14 | Operating environment | -20 to 50 °C air; UV, rain and road spray; FieldNode charges only from 0 to 45 °C | Material and cell review | **At risk:** inherits FieldNode's interior heat finding (FND R2, R3); the drain head module is rated -15 to 60 °C |
-| R15 | Mounting | Fits 40 to 60 mm poles with band clamps; total added mass on the pole 5 kg or less | Mass estimate | Met on paper: 4.62 kg; clamp twist factor only 1.45 in a 35 m/s gust |
-| R16 | Cost | FloodGauge-specific parts $150 or less at quantity 1; FieldNode costed separately (FND-CAL-001) | Priced BOM | Met on paper: $145.50 ($271.50 with the $126.00 FieldNode core) |
+| R15 | Mounting | Fits 40 to 60 mm poles with band clamps; total added mass on the pole 5 kg or less | Mass estimate | Met on paper: 4.74 kg; twist factor 37 with the M8 anti-rotation through-bolt (1.45 on friction alone) |
+| R16 | Cost | FloodGauge-specific parts $150 or less at quantity 1; FieldNode costed separately (FND-CAL-001) | Priced BOM | **Not met:** $153.50, $3.50 over, after the surface cable cover and the through-bolt ($279.50 with the $126.00 FieldNode core) |
 | R17 | Open data | Levels published in an open, documented format (JSON or CSV) through the gateway | Design review | Met by design |
 
 ## Assumptions
@@ -54,15 +58,14 @@ Table 1. Requirements and status at TRL 3
 - The road surface at the gauge point is the datum for street depth. Depth equals the surveyed head height minus the measured range.
 - "Event" means water above the first alert band or rising faster than 20 mm/min.
 - FieldNode figures (usable energy, allowance, airtime per uplink, mass, cost, charge temperature window) come from FND-CAL-001 in the FieldNode repo.
-- Alert depths of 150 mm and 300 mm follow NWS guidance on water that can knock over an adult and carry away a car ([NWS](https://www.weather.gov/safety/flood-turn-around-dont-drown)). They are defaults under FLG-DDR-001 D6, to be set locally with the partner city.
+- Alert depths of 150 mm and 300 mm follow NWS guidance on water that can knock over an adult and carry away a car ([NWS](https://www.weather.gov/safety/flood-turn-around-dont-drown)). They are defaults under FLG-DDR-001 D6, to be set locally with the partner city. Under FLG-DDR-002 the alert service also supports a first band below 150 mm, whose depth is set with the partner city.
 - The remaining assumptions for every status above are in FLG-CAL-001, Table 1.
 
 ## Requirements not met or at risk
 
-- **R3 not met:** the drain head cannot sit higher than 300 mm below the road, and its 30 mm blind zone leaves 290 mm below the grate with only the wet probe. Proposed, awaiting Amish: restate R3 as "continuous reading from 50 mm above the basin floor to 330 mm below the road, plus a drain-full signal above that".
-- **R12 not met:** the conduit from basin to pole is civil work. Proposed, awaiting Amish: a surface cable route along the curb face under a steel cover for pilots.
+- **R12 not met:** the surface cable route (DDR-002) removes the coring and trenching, but fitting its cover takes the installation to 120 min against 90 min. A new proposal is in `docs/REVIEW.md`, awaiting Amish.
+- **R16 not met:** $153.50 against $150 after the surface cable cover ($14.00 in place of the $8.00 conduit) and the through-bolt ($2.00). A new proposal is in `docs/REVIEW.md`, awaiting Amish.
 - **R7 at risk:** slow spreading factors need a longer event interval; event reporting belongs on a private or city gateway (D7).
 - **R9 at risk:** the transducer face seal decides immersion survival.
 - **R14 at risk:** interior heat in FieldNode, and the drain module's -15 °C lower rating.
-- **R1 note:** at 2.95 m the head is inside a 4.0 to 4.3 m vehicle envelope at the curb. Proposed, awaiting Amish: widen the mounting band to 2.5 to 5.0 m and set the height to local clearance rules.
 - **R2** would not be met if the ultrasonic street variant were used.

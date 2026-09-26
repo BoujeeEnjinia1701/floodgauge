@@ -3,7 +3,7 @@ doc_id: FLG-DDR-001
 title: FloodGauge TRL 2 review decisions
 project: FloodGauge
 doc_type: Design decision record
-version: "0.1"
+version: "0.2"
 status: Draft
 date: '2026-09-25'
 author: Amish Chadha
@@ -13,12 +13,16 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Record the TRL 2 review items adopted as recommended for TRL 3 work, open for Amish's review, and the items that remain open
+- version: "0.2"
+  date: '2026-09-25'
+  author: Amish Chadha
+  change: Recommendations accepted by Amish (DDR-002)
 ---
 
 # 0001: TRL 2 review decisions
 
 - **Date:** 2026-09-25
-- **Status:** proposed. The recommendations in items D1 to D9 are adopted for TRL 3 work pending Amish's review; item O1 remains "Proposed, awaiting Amish".
+- **Status:** accepted. On 2026-09-25 Amish wrote "i accept all your recommendations, go with them across all repos", so items D1 to D9 are "Decided by Amish, 2026-09-25: go with recommendation" (recorded in FLG-DDR-002). Item O1 had no recommendation and remains "Proposed, awaiting Amish".
 
 ## Context
 
@@ -30,19 +34,19 @@ The options for each item are those listed in `docs/REVIEW.md` (session 2026-09-
 
 ## Decision
 
-*Table 1. Items adopted for TRL 3 work.*
+*Table 1. Items decided (first adopted for TRL 3 work, then decided by Amish on 2026-09-25).*
 
 | # | Item | Adopted recommendation | Status |
 | --- | --- | --- | --- |
-| D1 | Budget (review item 1) | Option (a): cost the FieldNode core in the FieldNode repo and hold FloodGauge-specific parts to $150. R16 is restated as "FloodGauge-specific parts $150 or less; FieldNode costed separately". `budget_usd` stays $150; no new budget figure was recommended | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D2 | Heads (review item 2, precis choice 1) | Two heads on one node: street and drain; street head only is the fallback where no cable route to the basin exists | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D3 | Street head sensing (review item 3, precis choice 2) | 60 GHz pulsed coherent radar; an ultrasonic street head is documented as the lower-cost variant | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D4 | Drain head (review item 4, precis choice 3) | Waterproof ultrasonic ranger in a slotted 75 mm stilling tube, with a two-electrode wet probe as a second signal | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D5 | Head position (review item 5, precis choice 4) | Arm over the gutter with the head at 2.95 m or higher, subject to the road authority's clearance rules | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D6 | Alert bands (review item 6, precis choice 5) | 150 mm and 300 mm of water above the road, from NWS guidance, plus a drain-full alert from the wet probe; defaults to be set locally with the partner city | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D7 | Network (review item 7, precis choice 6) | Private or city LoRaWAN gateway (TwinKit or the city network) for event reporting; The Things Network for pilots only | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D8 | Privacy (precis choice 7) | Levels only; no camera, no microphone, no imaging | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
-| D9 | Pitch and problem (review item 9) | No change was recommended; the pitch and problem lines in `project.yaml` and `README.md` are unchanged | Adopted as recommended for TRL 3 under Amish's 2026-09-25 instruction, open for his review |
+| D1 | Budget (review item 1) | Option (a): cost the FieldNode core in the FieldNode repo and hold FloodGauge-specific parts to $150. R16 is restated as "FloodGauge-specific parts $150 or less; FieldNode costed separately". `budget_usd` stays $150; no new budget figure was recommended | Decided by Amish, 2026-09-25: go with recommendation |
+| D2 | Heads (review item 2, precis choice 1) | Two heads on one node: street and drain; street head only is the fallback where no cable route to the basin exists | Decided by Amish, 2026-09-25: go with recommendation |
+| D3 | Street head sensing (review item 3, precis choice 2) | 60 GHz pulsed coherent radar; an ultrasonic street head is documented as the lower-cost variant | Decided by Amish, 2026-09-25: go with recommendation |
+| D4 | Drain head (review item 4, precis choice 3) | Waterproof ultrasonic ranger in a slotted 75 mm stilling tube, with a two-electrode wet probe as a second signal | Decided by Amish, 2026-09-25: go with recommendation |
+| D5 | Head position (review item 5, precis choice 4) | Arm over the gutter with the head at 2.95 m or higher, subject to the road authority's clearance rules | Decided by Amish, 2026-09-25: go with recommendation |
+| D6 | Alert bands (review item 6, precis choice 5) | 150 mm and 300 mm of water above the road, from NWS guidance, plus a drain-full alert from the wet probe; defaults to be set locally with the partner city | Decided by Amish, 2026-09-25: go with recommendation |
+| D7 | Network (review item 7, precis choice 6) | Private or city LoRaWAN gateway (TwinKit or the city network) for event reporting; The Things Network for pilots only | Decided by Amish, 2026-09-25: go with recommendation |
+| D8 | Privacy (precis choice 7) | Levels only; no camera, no microphone, no imaging | Decided by Amish, 2026-09-25: go with recommendation |
+| D9 | Pitch and problem (review item 9) | No change was recommended; the pitch and problem lines in `project.yaml` and `README.md` are unchanged | Decided by Amish, 2026-09-25: go with recommendation |
 
 *Table 2. Items that remain open.*
 
@@ -57,4 +61,5 @@ The options for each item are those listed in `docs/REVIEW.md` (session 2026-09-
 - Requirement R16 is restated to match D1: it now covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo ($126.00, FND-CAL-001). No other target changes in this record.
 - `bom/bom.csv` keeps the FieldNode core as line 1 for the complete-gauge total, marked as costed in the FieldNode repo and excluded from the R16 total.
 - The TRL 3 calculations (FLG-CAL-001) found problems that need Amish's decision: R3 is not met above 330 mm below the road, R12 is not met because of the conduit, the 2.95 m head height is inside a tall vehicle envelope, and the arm's twist margin on two band clamps is 1.45. The proposals for these are in `docs/REVIEW.md` and are not decided by this record.
+- The later problems listed above were also decided on 2026-09-25; see FLG-DDR-002.
 - TRL 4 is on hold by Amish's instruction. Nothing in this record authorizes building or testing.

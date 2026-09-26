@@ -48,7 +48,7 @@ Depths that look harmless kill. The US National Weather Service warns that 150 m
 
 ## What sparked the idea
 
-It came out of a September 2026 review of Design Molecule's applied research areas against the open projects already in the lab. The real-world trigger is community street flood sensing such as New York City's FloodNet, whose low-cost ultrasonic sensors on sign posts sample every minute ([FloodNet](https://www.floodnet.nyc/methodology)); its designs carry a non-commercial license ([floodnet-nyc/flood-sensor](https://github.com/floodnet-nyc/flood-sensor)), which leaves room for an openly licensed gauge that also looks inside the drain.
+The idea traces back to the night of September 1, 2021, when the remnants of Hurricane Ida hit New York City. The city's sewers are designed to carry 44 mm (1.75 in) of rain an hour, and Ida brought more than two hours above that rate ([NYC Comptroller, 2024](https://comptroller.nyc.gov/reports/is-new-york-city-ready-for-rain/)). Drains backed up into streets and basements. Of the 14 injury deaths in the city, 10 were drownings in basement apartments, and the deaths for which a time is known came before the state of emergency was declared, and that declaration carried no basement-specific advice ([Yuan et al., 2024](https://www.cambridge.org/core/journals/disaster-medicine-and-public-health-preparedness/article/immediate-injury-deaths-related-to-the-remnants-from-hurricane-ida-in-new-york-city-september-12-2021/69BD8C527FD016A2CAC703C7023B2251)). The warning that mattered on that street was the drain filling and the water rising at the curb, and that is what FloodGauge measures.
 
 ## Problem
 
@@ -63,12 +63,12 @@ Full design precis: [docs/02-concept.md](docs/02-concept.md)
 ## Key components
 
 - FieldNode core (enclosure, 6 W solar panel, LiFePO4 cell, LoRaWAN radio), shared with other lab projects
-- Street head: 60 GHz radar on a short arm over the gutter, lens 2.95 m above the road or higher where clearance rules require
+- Street head: 60 GHz radar on a short arm over the gutter, lens 2.5 to 5.0 m above the road as the site's clearance rule requires (4.6 m in the reference design), with an anti-rotation through-bolt
 - Drain head: waterproof ultrasonic ranger with wet probe and temperature sensor, in a slotted 75 mm stilling tube inside the catch basin
-- Conduit from basin to pole, depth marker plate with 150 mm and 300 mm bands
+- Surface cable route for pilots under a bolted steel cover (conduit at permanent sites), depth marker plate with 150 mm and 300 mm bands
 - Open alert service on a LoRaWAN gateway such as TwinKit
 
-TRL 3 calculations ([FLG-CAL-001](docs/04-calcs/01-sizing.md)): alert latency 82 s at the 95th percentile (110 s worst case), street depth error ±6.3 mm with radar, drain level error ±11 mm, under 10 mW of sensor load, 4.62 kg on the pole, and $145.50 of FloodGauge-specific parts against the $150 budget ($271.50 with the $126 FieldNode core). Two requirements are not met: the drain head cannot read the top 290 mm of the basin, and the conduit from basin to pole makes installation civil work. See the [design precis](docs/02-concept.md) and [requirements](docs/03-requirements.md). The design choices are adopted for TRL 3 pending Amish's review ([FLG-DDR-001](docs/decisions/0001-trl2-review-decisions.md)).
+TRL 3 calculations ([FLG-CAL-001](docs/04-calcs/01-sizing.md)): alert latency 82 s at the 95th percentile (110 s worst case), street depth error ±6.5 mm with radar, drain level error ±11 mm, under 10 mW of sensor load, 4.74 kg on the pole, and $153.50 of FloodGauge-specific parts against the $150 budget ($279.50 with the $126 FieldNode core). Two requirements are not met: installation takes 120 min against 90 min, and the parts are $3.50 over budget. See the [design precis](docs/02-concept.md) and [requirements](docs/03-requirements.md). The design choices were decided by Amish on 2026-09-25 ([FLG-DDR-001](docs/decisions/0001-trl2-review-decisions.md), [FLG-DDR-002](docs/decisions/0002-recommendations-accepted.md)).
 
 The working bill of materials is in [bom/bom.csv](bom/bom.csv).
 
@@ -78,7 +78,7 @@ The working bill of materials is in [bom/bom.csv](bom/bom.csv).
 >
 > Never enter a catch basin: it can hold toxic or oxygen-poor air and fast-rising water. Stormwater carries sewage and chemicals; wear gloves and eye protection. The FieldNode LiFePO4 cell must be fused and charged only between 0 and 45 °C.
 >
-> An arm over the gutter must clear tall vehicles at the curb; mount it at the height the road authority requires.
+> An arm over the gutter must clear tall vehicles at the curb; mount it at the height the road authority requires (4.6 m in the reference design), from a mobile elevating platform, and always fit the anti-rotation bolt. Keep the surface cable cover low, beveled and marked so it is not a trip hazard.
 >
 > FloodGauge supplements official flood warnings and must never be the only warning people rely on.
 
@@ -105,4 +105,4 @@ Controlled documents follow the portfolio [documentation standard](.kit/STANDARD
 - **Hardware** (CAD, drawings, BOM, electronics): [CERN-OHL-S v2](LICENSE)
 - **Software** (firmware, scripts, notebooks): [MIT](LICENSE-SOFTWARE)
 
-A project of the [Design Molecule](https://designmolecule.com) lab. Smart cities set.
+A project of the [Design Molecule](https://designmolecule.com) lab.
