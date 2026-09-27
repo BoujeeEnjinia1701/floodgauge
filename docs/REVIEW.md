@@ -203,3 +203,33 @@ Amish wrote, in chat on 2026-09-26: "i approve all the budget items." The open R
 - R16 target $150 to $160; status **not met to met on paper** ($153.50 FloodGauge-specific, $6.50 under; $279.50 with the FieldNode core, which stays costed in its own repo).
 - Requirement counts (FLG-CAL-001 v0.3): 1 not met (R12), 3 at risk, 1 not verifiable, 9 met on paper, 3 met by design.
 - Documents: FLG-PRB-001 v0.4, FLG-PRC-001 v0.5, FLG-REQ-001 v0.5, FLG-CAL-001 v0.3 (`sizing.py` target now read from `budget_usd`; `results.csv` regenerated), FLG-DDR-002 v0.2; `bom/bom-notes.md`; PDFs rebuilt. No media shows the budget, so none was regenerated.
+
+## Session 2026-09-26: product appearance model and photoreal renders
+
+Amish chose this repo for the first batch of product renders on 2026-09-26.
+
+### What was added
+
+`cad/src/product_model.py` exposes `product_parts()` (68 parts: 42 shell, 9 internal, 10 accessory, 7 context), `TITLE` and `RENDER_VIEWS` (hero, exploded and a detail view of the pole kit without the street). It reuses PARAMS, derived() and bands() from `cad/src/model.py`; every part size, the head offset past the curb face, the arm length, the clamp spacing, the knee brace, the M8 through-bolt, the node's place on the road side of the pole, the marker plate and bands, the cable cover and riser guard, and the drain head and stilling tube positions are as model.py. It adds:
+
+- FieldNode core (item 1): filleted enclosure with side ribs and a lid parting line, a lid with a clear window over the board and the LiFePO4 cell, four lid screws, a teal name plate, a lit green status light, two M12 sensor ports and a vent plug on the underside, back plate and pole straps; inside, the MPPT and LoRaWAN board with its radio shield can and flex antenna, and the 6 Ah cell in a holder.
+- 6 W panel: aluminium frame, dark cells under glass with grid lines, and a mounting blade, in the model.py pose (25° toward the road).
+- Street radar head (item 2): filleted housing with a parting groove, a teal band and a label, a side M12 cable gland, the PTFE lens in a retaining ring, and the radar module on its carrier board.
+- Sensor arm (item 3): aluminium tube with end caps, head saddle and screws, two band clamps with bolted ears, the knee brace, and the M8 through-bolt with its nyloc nut and washer.
+- Sensor cables (item 6): the street cable from the head gland along the arm and down the pole, the drain cable from the riser guard to the node, M12 plugs and cable ties.
+- Depth marker plate (item 8) with amber and red bands, tick marks and rivets; surface cable cover (item 7) as a ridged angle over the gutter strip, a plate up the curb face and a beveled cover across the sidewalk, with the riser guard and masonry anchors.
+- Drain head (item 4): cap with a teal band and top gland, potted base, ultrasonic transducer, wet probe pins and NTC bead; stilling tube (item 5) with its 40 slots (10 rows of 4) and two wall brackets.
+- Context (not in the BOM): a compact street patch with asphalt, a concrete gutter strip, the cast iron grate over a dark basin throat, the curb and sidewalk, a thin sheet of ponding stormwater (illustrative), and a section of the existing pole.
+
+`README.md` now shows `media/render-hero.png` and links `media/render-exploded.png`; the orchestrator produces both files.
+
+### Differences from model.py (Proposed, awaiting Amish)
+
+1. **Render layout of the pole kit.** Installed, the lens is 4.6 m above the road and the node center 3.0 m, so a true-scale render would show a tall bare pole with small devices. The appearance model draws the arm, clamps and head 3.3 m lower (lens 1.3 m above the road) and the node 2.26 m lower (center 0.74 m), just under the lower clamp; the pole section is cut off 170 mm above the arm. All sizes and horizontal offsets are unchanged, and the marker plate, cable cover and riser guard stay at their true heights. Proposed, awaiting Amish. Recommendation: keep this as a render-only layout with the hero caption saying the kit is drawn lower than installed (the view note does); the installed heights stay as in model.py and FLG-DWG-001. Option: render the true heights, accepting a small device in a tall frame.
+2. **Drain kit only in the exploded view.** The drain head and stilling tube sit inside the catch basin, 0.3 to 1.24 m below the road, so they are in the "accessory" group: the exploded view lifts them beside the pole kit, and the hero and detail views leave them out. Proposed, awaiting Amish. Recommendation: accept, and consider a later cutaway render through the basin if the drain side needs a product image of its own.
+3. **Cable routes.** model.py draws the cables as straight boxes (street cable vertical through the saddle and arm; drain cable up the pole behind it). The appearance model routes the street cable from a side gland on the head along the arm's side and down the pole beside the clamps to the node's M12 port, and the drain cable from the top of the riser guard to the other port. Cable lengths are not recomputed. Proposed, awaiting Amish. Recommendation: adopt the side gland on the head (it keeps the cable out of the saddle and gives a drip loop) and check the 3 m street cable length against the new route at the next calc revision.
+4. **Appearance details not in the BOM text.** The clear window in the node lid, the name plate and status light, the panel mounting blade, the cable ties, the marker ticks and rivets, and the ridged angle profile of the cable cover are appearance choices; the FieldNode enclosure and panel follow the FieldNode repo and are not redefined here. Proposed, awaiting Amish. Recommendation: treat them as render detail only; if a clear-lid node is wanted, raise it in the FieldNode repo.
+
+### Status
+
+This is an appearance model only: no tolerances, no fabrication detail, nothing past TRL 3. `trl: 3` and `trl_target: 3` are unchanged, and TRL 4 remains on hold. model.py, the BOM and the other documents were not edited.
