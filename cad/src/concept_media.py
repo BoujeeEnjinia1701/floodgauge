@@ -35,7 +35,7 @@ parts = [
     Part("Existing street pole, 60 mm", S["pole"], GREY, None),
     Part("FieldNode core (enclosure, LiFePO4, LoRaWAN)", K["node"], "#E5E7EB", 1, (-150, -500, 150)),
     Part("FieldNode 6 W panel (part of item 1)", K["panel"], "#1E3A8A", None, (-150, -500, 350)),
-    Part("Street radar head, 60 GHz", K["street_head"], "#0F766E", 2, (-250, -300, -350)),
+    Part("Street radar head, 60 GHz", K["street_head"], "#0F766E", 2, (-250, -300, 350)),
     Part("Sensor arm and pole clamps", K["arm"], "#D4A017", 3, (0, 0, 250)),
     Part("Drain head, ultrasonic with wet probe", K["drain_head"], "#C2410C", 4, (-400, -500, 1650)),
     Part("Stilling tube, 75 mm slotted PVC", K["tube"], "#F59E0B", 5, (-400, -500, 1400)),

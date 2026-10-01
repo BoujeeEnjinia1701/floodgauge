@@ -90,12 +90,13 @@ def main():
     S = site()
     kit = list(K.values()) + list(Bd.values())
     overall = Compound(children=kit + [S["pole"], S["basin"], S["grate"]])
-    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P2",
+    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P3",
               author="Amish Chadha", date=DATE, scale=1 / 50, theme="technical",
               material="Aluminium arm, PVC tube, bought-in heads per bom/bom.csv; existing street shown for context. "
                        "PRELIMINARY, NOT FOR FABRICATION",
               revisions=[("P1", "Preliminary GA for TRL 3 (from cad/src/model.py)", DATE, "AC"),
-                         ("P2", "DDR-002: lens 4.6 m, node 3.0 m, surface cable cover, anti-rotation bolt", DATE, "AC")])
+                         ("P2", "DDR-002: lens 4.6 m, node 3.0 m, surface cable cover, anti-rotation bolt", DATE, "AC"),
+                         ("P3", "Layout and labels tidied", DATE, "AC")])
     L = []
     L.append(_t(16, 24, "PRELIMINARY, NOT FOR FABRICATION", 2.6, 600, "#B45309"))
 
@@ -109,7 +110,7 @@ def main():
     tw, th = place(s, top, x0, yt, k, "Top view", "Scale 1:50")
     yf = yt + th + 16
     fw, fh = place(s, front, x0, yf, k, "Front view", "Scale 1:50; looking along the street")
-    xr = x0 + fw + 12
+    xr = x0 + fw + 16
     rw, rh = place(s, right, xr, yf, k, "Right view", "Scale 1:50")
     X = lambda mx: x0 + (mx - bb.min.X) * k
     Z = lambda mz: yf + fh - (mz - bb.min.Z) * k
@@ -118,7 +119,7 @@ def main():
     L.append(line(X(0), Z(0), X(0), Z(P["curb_h"]), 0.35))
     L.append(line(X(0), Z(P["curb_h"]), X(bb.max.X) + 3, Z(P["curb_h"]), 0.35))
     L.append(_t(X(bb.min.X) - 3, Z(0) - 1, "ROAD, Z = 0 (DATUM)", 1.8, 600, MUTED))
-    L.append(_t(X(bb.max.X) + 3, Z(P["curb_h"]) - 1, "SIDEWALK", 1.8, 600, MUTED, "end"))
+    L.append(_t(X(bb.max.X) + 5, Z(P["curb_h"]) - 1, "SIDEWALK", 1.8, 600, MUTED, "start"))
     xd = X(bb.min.X) - 4
     L += [ext(X(D["head_x"]), Z(P["head_z"]), xd - 1, Z(P["head_z"]))]
     L += dim_v(xd, Z(P["head_z"]), Z(0), f"{P['head_z']:,.0f} lens to road")
@@ -170,20 +171,20 @@ def main():
     Xb = lambda mx: xb + (mx - bbb.min.X) * kb
     Zb = lambda mz: yb + bh - (mz - bbb.min.Z) * kb
     xbd = Xb(bbb.max.X) + 5
-    for i, (zz, txt) in enumerate(((P["tube_top"], f"{-P['tube_top']:.0f} head face"),
-                                   (D["dh_top_level"], f"{-D['dh_top_level']:.0f} top of reading"),
-                                   (D["tube_bot"], f"{-D['tube_bot']:,.0f} tube mouth"))):
-        xx = xbd + 7 * i
+    for i, (zz, txt) in enumerate(((P["tube_top"], f"{-P['tube_top']:.0f}"),
+                                   (D["dh_top_level"], f"{-D['dh_top_level']:.0f}"),
+                                   (D["tube_bot"], f"{-D['tube_bot']:,.0f} mouth"))):
+        xx = xbd + 11 * i
         L += [ext(Xb(D["tube_x"]), Zb(zz), xx + 1, Zb(zz))]
         L += dim_v(xx, Zb(0), Zb(zz), txt, side=1)
-    L.append(line(Xb(bbb.min.X) - 3, Zb(0), xbd + 16, Zb(0), 0.18, MUTED, "1.5 1"))
+    L.append(line(Xb(bbb.min.X) - 3, Zb(0), xbd + 30, Zb(0), 0.18, MUTED, "1.5 1"))
     L.append(_t(Xb(bbb.min.X) - 3, Zb(0) - 0.8, "ROAD Z = 0", 1.6, 600, MUTED, "start"))
     zm = (P["tube_top"] + D["tube_bot"]) / 2
     L += leader(Xb(D["tube_x"] - P["tube_od"] / 2), Zb(zm), Xb(D["tube_x"]) - 8, Zb(zm),
                 f"5 TUBE {P['tube_od']:.0f} OD x {D['tube_len']:.0f}", "end")
     L += leader(Xb(D["tube_x"] - P["drain_head_d"] / 2), Zb(P["tube_top"] + 45), Xb(D["tube_x"]) - 8, Zb(P["tube_top"] - 60),
-                "4 DRAIN HEAD, WET PROBE", "end")
-    L.append(_t(Xb(-400), Zb(-1050) + 1, "WATER RISES IN TUBE THROUGH SLOTS", 1.6, 400, MUTED, "middle"))
+                "4 DRAIN HEAD", "end")
+    L.append(_t(Xb(D["tube_x"]) - 5, Zb(-1050) + 1, "WATER ENTERS VIA SLOTS", 1.6, 400, MUTED, "end"))
 
     s._layers += L
     iso = project(Compound(children=kit + [S["pole"]]), "iso", "iso")
