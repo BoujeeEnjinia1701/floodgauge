@@ -1,10 +1,11 @@
-"""FloodGauge sizing calculations, FLG-CAL-001 v0.2 (TRL 3, FLG-DDR-002 decisions applied).
+"""FloodGauge sizing calculations, FLG-CAL-001 v0.4 (TRL 3, constructable design, FLG-DDR-003).
 
 Run from the repo root:  python docs/04-calcs/sizing.py
 Prints every number quoted in docs/04-calcs/01-sizing.md; each line carries a tag such as [B2]
 that the note cites. It also writes docs/04-calcs/results.csv (requirement status table).
 Geometry comes from cad/src/model.py (PARAMS and derived), the parts cost from bom/bom.csv and
-the budget from project.yaml. FieldNode figures come from the FieldNode repo (FND-CAL-001).
+the value-engineering target (budget_usd) from project.yaml. FieldNode figures come from the FieldNode repo
+(FND-CAL-001, FND-BLD-001). Masses of the made parts and the cable runs are measured on the model.
 First-principles estimates for a paper proof of concept; not a substitute for tests.
 """
 import csv
@@ -17,9 +18,11 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "cad" / "src"))
-from model import PARAMS as P, derived  # noqa: E402
+from model import PARAMS as P, derived, masses, cable_runs  # noqa: E402
 
 D = derived(P)
+MASS = masses(P)
+RUNS = cable_runs(P)
 
 
 def tag(t, text):
@@ -79,7 +82,7 @@ POLE_T, POLE_FU = 2.5, 360.0       # mm, MPa: pole wall and steel strength at th
 CABLE_PF = 100.0              # pF/m, outdoor multicore cable (assumed)
 CABLE_KG = 0.07               # kg/m
 
-print("FloodGauge sizing, FLG-CAL-001 v0.2")
+print("FloodGauge sizing, FLG-CAL-001 v0.4")
 print(f"Geometry from cad/src/model.py: lens {P['head_z']:.0f} mm above the road, {P['head_offset']:.0f} mm past the curb face; "
       f"tube {D['tube_len']:.0f} mm, ID {D['tube_id']:.0f} mm")
 
@@ -114,7 +117,7 @@ tag("A7", f"head underside {P['head_z'] / 1000:.2f} m against a {VEH_H[0]:.1f} t
 
 # ------------------------------------------------------------------ B. Street depth error (R2)
 print("\nB. Street depth error (R2)")
-thermal = ALPHA_STEEL * (P["arm_z"]) * DT_POLE
+thermal = ALPHA_STEEL * (D["arm_z"]) * DT_POLE
 rss_r = math.sqrt(RADAR_ACC ** 2 + DATUM ** 2 + thermal ** 2 + RIPPLE ** 2)
 lin_r = RADAR_ACC + DATUM + thermal + RIPPLE
 tag("B1", f"radar: module ±{RADAR_ACC:.1f} (assumed), datum ±{DATUM:.1f}, pole expansion ±{thermal:.2f}, ripple ±{RIPPLE:.1f} mm: "
@@ -128,7 +131,7 @@ comp = rng * 0.606 * US_COMP_DT / c_sound(T_CAL)
 rss_u = math.sqrt(US_ACC ** 2 + comp ** 2 + DATUM ** 2 + thermal ** 2 + RIPPLE ** 2)
 tag("B3", f"ultrasonic variant, compensated (±{US_COMP_DT:.0f} K air column): ±{comp:.1f} mm temperature, RSS ±{rss_u:.1f} mm with module ±{US_ACC:.0f} mm; R2 not met")
 arm_I = (P["arm_sq"] ** 4 - (P["arm_sq"] - 2 * P["arm_wall"]) ** 4) / 12
-sag_bird = 10.0 * (D["cantilever"] - D["pole_r"]) ** 3 / (3 * E_AL * arm_I)
+sag_bird = 10.0 * (D["plate_front_x"] - D["head_x"]) ** 3 / (3 * E_AL * arm_I)
 tag("B4", f"arm I = {arm_I:,.0f} mm4; a 1 kg bird at the head moves it {sag_bird:.2f} mm (unbraced upper bound); negligible")
 
 # ------------------------------------------------------------------ C. Drain level error and tube hydraulics (R4, R3)
@@ -242,13 +245,15 @@ tag("G2", "rules: reject depth above 600 mm; reject a step above 50 mm between 1
           "or rising; require 3 consecutive readings above a band; flag a gauge silent for 30 min")
 
 # ------------------------------------------------------------------ H. Arm structure and clamps (R15)
-print("\nH. Arm, brace and clamps (R15)")
-L_arm_out = D["pole_face_x"] - D["arm_x0"]
+print("\nH. Arm, brace, pole bracket and clamps (R15)")
+L_arm_out = D["plate_front_x"] - D["arm_x0"]
 f_arm = L_arm_out * P["arm_sq"] * 1e-6 * CD_SQ * Q_WIND
-lev_arm = P["pole_x"] - (D["arm_x0"] + D["pole_face_x"]) / 2
+lev_arm = P["pole_x"] - (D["arm_x0"] + D["plate_front_x"]) / 2
 f_head = P["head_d"] * P["head_h"] * 1e-6 * CD_CYL * Q_WIND
-f_brace = D["brace_len"] * P["brace_sq"] * 1e-6 * CD_SQ * Q_WIND
-lev_brace = P["pole_x"] - (D["pole_face_x"] - P["brace_leg"] / 2)
+(xt, zt), (xf_, zf_) = D["pin_top"], D["pin_foot"]
+f_brace = D["brace_pins"] * P["brace_sq"] * 1e-6 * CD_SQ * Q_WIND
+lev_brace = P["pole_x"] - (xt + xf_) / 2
+f_plate = P["bplate"][1] * D["bplate_h"] * 1e-6 * CD_SQ * Q_WIND * 0.0   # plate edge-on to wind along the street
 torque = f_arm * lev_arm / 1000 + f_head * D["cantilever"] / 1000 + f_brace * lev_brace / 1000
 t_cap = 2 * MU * 2 * BAND_PRELOAD * D["pole_r"] / 1000
 tag("H1", f"wind along the street at 35 m/s (q {Q_WIND:.0f} Pa): arm {f_arm:.1f} N, head {f_head:.1f} N, brace {f_brace:.1f} N; "
@@ -258,47 +263,51 @@ f_shear = 0.6 * BOLT_FUB * BOLT_AS
 f_bear = 2.5 * POLE_FU * P["bolt_d"] * POLE_T
 f_bolt = min(f_shear, f_bear)
 t_bolt = f_bolt * P["pole_od"] / 1000
-tag("H2b", f"M8 through-bolt at the lower clamp: shear {f_shear / 1000:.1f} kN per plane, pole wall bearing {f_bear / 1000:.1f} kN "
-           f"({POLE_T} mm wall assumed); couple across the {P['pole_od']:.0f} mm pole {t_bolt:.0f} N m, factor {t_bolt / torque:.0f} against wind twist")
-brace_x = D["pole_face_x"] - P["brace_leg"]
-m_tip = HANG * (brace_x - D["head_x"]) / 1000
+tag("H2b", f"M8 through-bolt across the street through the bracket plate, a {D['spacer_len']:.1f} mm spacer and the pole: shear {f_shear / 1000:.1f} kN per plane, "
+           f"pole wall bearing {f_bear / 1000:.1f} kN ({POLE_T} mm wall assumed); couple across the {P['pole_od']:.0f} mm pole {t_bolt:.0f} N m, "
+           f"factor {t_bolt / torque:.0f} against wind twist")
+m_tip = HANG * (xt - D["head_x"]) / 1000
+arm_I = (P["arm_sq"] ** 4 - (P["arm_sq"] - 2 * P["arm_wall"]) ** 4) / 12
 z_arm = arm_I / (P["arm_sq"] / 2)
 sig = m_tip * 1000 / z_arm
-m_clamp = HANG * D["cantilever"] / 1000
-h_brace = m_clamp / (P["clamp_dz"] / 1000)
-f_br = h_brace * math.sqrt(2)
+lever = D["arm_z"] - zf_                                   # arm axis to the brace foot pin
+m_clamp = HANG * (D["plate_front_x"] - D["head_x"]) / 1000
+h_pull = m_clamp / (lever / 1000)                          # arm pull at the cleats = brace push across, horizontal
+f_br = h_pull * math.sqrt(2)
 bI = (P["brace_sq"] ** 4 - (P["brace_sq"] - 2 * P["brace_wall"]) ** 4) / 12
-pcr = math.pi ** 2 * E_AL * bI / D["brace_len"] ** 2
-tag("H3", f"50 kg hanging on the head: arm moment at the brace joint {m_tip:.0f} N m, stress {sig:.0f} MPa against {SY_AL:.0f} MPa "
-          f"(factor {SY_AL / sig:.1f}); brace force {f_br:.0f} N against buckling {pcr:,.0f} N")
-tag("H4", f"upper clamp pull {h_brace:.0f} N against {2 * BAND_PRELOAD:.0f} N band capacity (factor {2 * BAND_PRELOAD / h_brace:.1f}); "
-          f"slip resistance {2 * MU * 2 * BAND_PRELOAD:.0f} N against {HANG + 30:.0f} N down")
+pcr = math.pi ** 2 * E_AL * bI / D["brace_pins"] ** 2
+tag("H3", f"50 kg hanging on the head: arm moment at the top brace pin {m_tip:.0f} N m, stress {sig:.0f} MPa against {SY_AL:.0f} MPa "
+          f"(factor {SY_AL / sig:.1f}, {P['arm_wall']} mm wall); brace force {f_br:.0f} N against buckling {pcr:,.0f} N "
+          f"({P['brace_sq']:.0f} x {P['brace_sq']:.0f} x {P['brace_wall']} mm, {D['brace_pins']:.0f} mm between pins)")
+tag("H4", f"arm pull at the cleats {h_pull:.0f} N, carried by the upper band against {2 * BAND_PRELOAD:.0f} N band capacity "
+          f"(factor {2 * BAND_PRELOAD / h_pull:.1f}); slip resistance {2 * MU * 2 * BAND_PRELOAD:.0f} N against {HANG + 30:.0f} N down")
+M6_AS, M6_FUB, AL_FU = 20.1, 700.0, 240.0
+v_m6 = 0.6 * M6_FUB * M6_AS
+bear_wall = 2.5 * AL_FU * 6.0 * P["arm_wall"]
+tag("H5", f"M6 A4-70 bolts: shear {v_m6 / 1000:.1f} kN per plane; arm cleat joint two bolts in double shear, {4 * v_m6 / 1000:.0f} kN, "
+          f"bearing in the {P['arm_wall']} mm arm walls {4 * bear_wall / 1000:.1f} kN, against the {h_pull / 1000:.2f} kN pull; "
+          f"brace pins in double shear {2 * v_m6 / 1000:.1f} kN against {f_br / 1000:.2f} kN")
 
 # ------------------------------------------------------------------ I. Mass on the pole (R15)
 print("\nI. Mass on the pole (R15)")
-sq = lambda a, t: a * a - (a - 2 * t) ** 2
-masses = {
-    "FieldNode core (FND-CAL-001)": P["fieldnode_mass"],
-    "arm tube (model length)": sq(P["arm_sq"], P["arm_wall"]) * D["arm_len"] * RHO_AL,
-    "knee brace (model length)": sq(P["brace_sq"], P["brace_wall"]) * D["brace_len"] * RHO_AL,
-    "band clamps and brackets, 2 (assumed)": 0.30,
-    "head saddle and fixings (assumed)": 0.10,
-    "street radar head (assumed)": 0.25,
-    "street cable 3 m": 3.0 * CABLE_KG,
-    "drain cable on the pole": (D["node_bot"] - D["riser_top"] + 250) / 1000 * CABLE_KG,
-    "M8 through-bolt, nut and washers (assumed)": 0.05,
-    "depth marker plate (model)": P["marker"][0] * P["marker"][1] * P["marker"][2] * RHO_AL,
-}
+on_pole = ["bplate", "vblocks", "bands", "cleats", "top_clip", "foot_clip", "arm", "brace", "spacer", "through_bolt",
+           "head_plate", "head_screws", "fixings", "pins", "marker", "marker_bands"]
+drain_on_pole = (D["node_bot"] - D["riser_top"] + 250) / 1000
+masses = {"FieldNode core (FND-BLD-001)": P["fieldnode_mass"]}
+masses.update({f"{k} (model)": MASS[k] for k in on_pole})
+masses.update({"street radar head (assumed)": 0.25, "street cable 3 m": 3.0 * CABLE_KG,
+               f"drain cable on the pole {drain_on_pole:.1f} m": drain_on_pole * CABLE_KG})
 tot = sum(masses.values())
-tag("I1", "; ".join(f"{k} {v:.2f}" for k, v in masses.items()) + " kg")
-tag("I2", f"total on the pole {tot:.2f} kg against 5.0 kg ({(5.0 - tot) / 5.0 * 100:.0f} % margin); v0.1 gave 4.62 kg; "
-          f"with FieldNode's proposed 0.15 kg sun shield {tot + 0.15:.2f} kg")
+tag("I1", "; ".join(f"{k} {v:.3f}" for k, v in masses.items()) + " kg")
+off_pole = sum(MASS[k] for k in ("guard", "gutter_cover", "curb_cover", "walk_cover"))
+tag("I2", f"total on the pole {tot:.2f} kg against 5.0 kg (margin {5.0 - tot:.2f} kg, {(5.0 - tot) / 5.0 * 100:.1f} %); v0.3 gave 4.74 kg; "
+          f"the riser guard and the three covers ({off_pole:.2f} kg) stand on the sidewalk and are not carried by the pole")
 
 # ------------------------------------------------------------------ J. Cables and interface (R11 context)
 print("\nJ. Cables and ports")
-tag("J1", f"street cable run {D['cable_street']:.0f} mm plus 300 mm drip loops: {(D['cable_street'] + 300) / 1000:.2f} m in a 3 m cable; "
+tag("J1", f"street cable run along the arm and down the pole to port A {RUNS['street']:.0f} mm plus 300 mm drip loops: {(RUNS['street'] + 300) / 1000:.2f} m in a 3 m cable; "
           f"I2C bus about {3 * CABLE_PF + 50:.0f} pF against 400 pF (a 5 m cable would give {5 * CABLE_PF + 50:.0f} pF)")
-tag("J2", f"drain cable run on the surface route {D['cable_drain']:.0f} mm plus 500 mm loops: {(D['cable_drain'] + 500) / 1000:.2f} m in a 5 m cable; "
+tag("J2", f"drain cable run through the grate opening, under the covers, up the riser guard and the pole to port B {RUNS['drain']:.0f} mm plus 500 mm loops: {(RUNS['drain'] + 500) / 1000:.2f} m in a 5 m cable; "
           f"UART and one analog pin (wet probe)")
 tag("J3", "port use: street head on port A at 3.3 V (I2C); drain head on port B at 5 V (UART plus analog wet probe); one switched rail per port (FND R11)")
 
@@ -310,12 +319,12 @@ tag("K1", f"deepest design case: water 600 mm above the road puts {head_max:.2f}
 
 # ------------------------------------------------------------------ L. Installation (R12)
 print("\nL. Installation (R12)")
-tasks = [("Set up pedestrian and traffic protection", 10), ("Fit clamps, arm and brace from a mobile platform", 15),
-         ("Drill the pole and fit the anti-rotation through-bolt", 5),
+tasks = [("Set up pedestrian and traffic protection", 10), ("Lift the arm, assembled on the ground, and fit its two band clamps from a mobile platform", 15),
+         ("Drill the pole through the bracket plate and fit the anti-rotation through-bolt", 5),
          ("Hang FieldNode and plug the street head (FND-CAL-001 install)", 15), ("Fix marker plate", 5),
          ("Survey head height and record dry background", 10), ("Lift grate with hook, two people", 5),
          ("Drill two wall anchors through the grate opening with an extension", 20), ("Fit tube and drain head, close grate", 10),
-         ("Fit the surface cable cover: curb face and sidewalk anchors, riser guard", 25)]
+         ("Fit the three covers (eight anchors), the riser guard and the marker band clamps", 25)]
 t_no = sum(t for _, t in tasks)
 tag("L1", "; ".join(f"{a} {t} min" for a, t in tasks) + f"; total {t_no} min with the surface cable route, no civil work")
 tag("L2", f"surface cover {D['cover_len'] / 1000:.2f} m (gutter strip, curb face, sidewalk); anchors in the curb and sidewalk only, none in the road; "
@@ -330,8 +339,10 @@ total = sum(line(r) for r in rows)
 fnd = sum(line(r) for r in rows if r["item"].startswith("1 "))
 spec = total - fnd
 budget = float(yaml.safe_load((ROOT / "project.yaml").read_text())["budget_usd"])
-tag("M1", f"BOM {len(rows)} lines, all priced: {priced}; FloodGauge-specific (lines 2 to 10) ${spec:.2f} against budget_usd ${budget:.0f} "
-          f"(margin ${budget - spec:.2f}); complete gauge with FieldNode ${total:.2f}")
+tag("M1", f"BOM {len(rows)} lines, all priced: {priced}; FloodGauge-specific (lines 2 to 10) ${spec:.2f} against the value-engineering target "
+          f"(budget_usd) ${budget:.0f}: ${abs(spec - budget):.2f} {'over' if spec > budget else 'under'} the target; complete gauge with FieldNode ${total:.2f}")
+big = sorted(((line(r), r["item"]) for r in rows if not r["item"].startswith("1 ")), reverse=True)[:4]
+tag("M2", "main cost drivers: " + "; ".join(f"{n} ${c:.2f}" for c, n in big))
 
 # ------------------------------------------------------------------ status table
 print("\n[S] Requirement status")
@@ -350,8 +361,9 @@ status = [
     ("R12", "Not met" if t_no > 90 else "Met on paper", f"{t_no} min on the surface route; no civil work", "90 min, surface only, no basin entry"),
     ("R13", "Met on paper", "tape and radar dry-background survey; yearly marker check", "±5 mm"),
     ("R14", "At risk", "FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C", "-20 to 50 C"),
-    ("R15", "Met on paper", f"{tot:.2f} kg; twist factor {t_bolt / torque:.0f} with the through-bolt", "40 to 60 mm poles; 5 kg"),
-    ("R16", "Met on paper" if spec <= budget else "Not met", f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", f"${budget:.0f} FloodGauge-specific"),
+    ("R15", "Met on paper" if tot <= 5.0 else "Not met", f"{tot:.2f} kg; twist factor {t_bolt / torque:.0f} with the through-bolt", "40 to 60 mm poles; 5 kg"),
+    ("R16", "Within the value-engineering target" if spec <= budget else f"Over the value-engineering target by ${spec - budget:.2f}",
+     f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", f"${budget:.0f} FloodGauge-specific (value-engineering target)"),
     ("R17", "Met by design", "JSON or CSV through the gateway", "open format"),
 ]
 with (ROOT / "docs" / "04-calcs" / "results.csv").open("w", newline="") as f:

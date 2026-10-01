@@ -1,4 +1,4 @@
-"""FloodGauge general arrangement sheet FLG-DWG-001, Rev P2 (TRL 3, FLG-DDR-002 decisions applied).
+"""FloodGauge general arrangement sheet FLG-DWG-001, Rev P4 (TRL 3, constructable design, FLG-DDR-003).
 
 Run from the repo root:  python cad/src/sheets.py
 Writes cad/drawings/FLG-DWG-001.svg, .pdf and .png from the parametric model in cad/src/model.py
@@ -15,6 +15,7 @@ from drawing import Sheet, _viewbox, _t, INK, MUTED  # noqa: E402
 from model import PARAMS as P, derived, build_parts, bands, site  # noqa: E402
 
 DATE = "2026-09-25"
+DATE4 = "2026-10-01"
 WORK = ROOT / "cad" / "drawings" / "_views"
 SETUPS = {"front": ((0, -1, 0), (0, 0, 1)), "top": ((0, 0, 1), (0, 1, 0)), "right": ((1, 0, 0), (0, 0, 1)),
           "iso": ((1, -1, 0.8), (0, 0, 1))}
@@ -90,13 +91,14 @@ def main():
     S = site()
     kit = list(K.values()) + list(Bd.values())
     overall = Compound(children=kit + [S["pole"], S["basin"], S["grate"]])
-    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P3",
-              author="Amish Chadha", date=DATE, scale=1 / 50, theme="technical",
+    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P4",
+              author="Amish Chadha", date=DATE4, scale=1 / 50, theme="technical",
               material="Aluminium arm, PVC tube, bought-in heads per bom/bom.csv; existing street shown for context. "
                        "PRELIMINARY, NOT FOR FABRICATION",
               revisions=[("P1", "Preliminary GA for TRL 3 (from cad/src/model.py)", DATE, "AC"),
                          ("P2", "DDR-002: lens 4.6 m, node 3.0 m, surface cable cover, anti-rotation bolt", DATE, "AC"),
-                         ("P3", "Layout and labels tidied", DATE, "AC")])
+                         ("P3", "Layout and labels tidied", DATE, "AC"),
+                         ("P4", "DDR-003: constructable design; node at 3.4 m", DATE4, "AC")])
     L = []
     L.append(_t(16, 24, "PRELIMINARY, NOT FOR FABRICATION", 2.6, 600, "#B45309"))
 
@@ -133,7 +135,7 @@ def main():
     L += leader(X(0), Z(zt) + 2, X(0) + 3, Z(zt) - 4, "CURB FACE")
     # ---------------- Detail A: street head, arm and node, 1:10
     ka = 1 / 10
-    stub = Pos(P["pole_x"], 0, P["arm_z"] - 200) * Box(P["pole_od"], P["pole_od"], 700) & S["pole"]
+    stub = Pos(P["pole_x"], 0, D["arm_z"] - 200) * Box(P["pole_od"], P["pole_od"], 700) & S["pole"]
     detA = Compound(children=[K["street_head"], K["arm"], stub])
     bba = detA.bounding_box()
     fa = project(detA, "front", "a_front")
@@ -145,18 +147,20 @@ def main():
           ext(Xa(D["arm_x1"]), Za(D["arm_top"]), Xa(D["arm_x1"]), Za(D["arm_top"] + 70))]
     L += dim_h(Xa(D["arm_x0"]), Xa(D["arm_x1"]), Za(D["arm_top"] + 60), f"{D['arm_len']:.0f} arm")
     L += dim_h(Xa(D["head_x"]), Xa(P["pole_x"]), Za(D["arm_top"] + 25), f"{D['cantilever']:.0f} head to pole axis")
-    zc2 = P["arm_z"] - P["clamp_dz"]
+    zc1, zc2 = D["band_z"]
     xcl = Xa(bba.max.X) + 5
-    L += [ext(Xa(P["pole_x"] + D["pole_r"] + 8), Za(P["arm_z"]), xcl + 1, Za(P["arm_z"])),
+    L += [ext(Xa(P["pole_x"] + D["pole_r"] + 8), Za(zc1), xcl + 1, Za(zc1)),
           ext(Xa(P["pole_x"] + D["pole_r"] + 8), Za(zc2), xcl + 1, Za(zc2))]
-    L += dim_v(xcl, Za(P["arm_z"]), Za(zc2), f"{P['clamp_dz']:.0f} clamps", side=1)
+    L += dim_v(xcl, Za(zc1), Za(zc2), f"{P['clamp_dz']:.0f} clamps", side=1)
     L += leader(Xa(D["head_x"]), Za(P["head_z"]), Xa(D["head_x"]) + 3, Za(P["head_z"]) + 18,
                 f"2 RADAR HEAD D{P['head_d']:.0f}", "start")
-    L += leader(Xa(P["pole_x"]), Za(zc2), Xa(P["pole_x"]) + 8, Za(zc2) + 8, "M8 THROUGH-BOLT, ANTI-ROTATION", "start")
-    L += leader(Xa(-100), Za(P["arm_z"] - P["arm_sq"] / 2), Xa(-100) + 3, Za(P["arm_z"]) + 5,
-                f"3 ARM {P['arm_sq']:.0f} x {P['arm_sq']:.0f} x {P['arm_wall']:.0f}", "start")
-    L += leader(Xa(D["pole_face_x"] - P["brace_leg"] / 2), Za(P["arm_z"] - P["brace_leg"] / 2),
-                Xa(D["pole_face_x"] - P["brace_leg"] / 2) - 12, Za(P["arm_z"] - P["brace_leg"] / 2) - 2,
+    L += leader(Xa(P["pole_x"]), Za(D["bolt_z"]), Xa(P["pole_x"]) + 8, Za(D["bolt_z"]) + 8, "M8 THROUGH-BOLT, ANTI-ROTATION", "start")
+    L += leader(Xa(D["plate_front_x"]), Za(D["bolt_z"] + 150), Xa(D["plate_front_x"]) + 10, Za(D["bolt_z"] + 150) - 10,
+                "POLE BRACKET PLATE ON 2 V-BLOCKS", "start")
+    L += leader(Xa(-60), Za(D["arm_z"] - P["arm_sq"] / 2), Xa(-30), Za(D["arm_z"]) + 9,
+                f"3 ARM {P['arm_sq']:.0f} x {P['arm_sq']:.0f} x {P['arm_wall']:g}", "start")
+    (xt_, zt_), (xf_, zf_) = D["pin_top"], D["pin_foot"]
+    L += leader(Xa((xt_ + xf_) / 2), Za((zt_ + zf_) / 2), Xa((xt_ + xf_) / 2) - 12, Za((zt_ + zf_) / 2) + 6,
                 f"KNEE BRACE {P['brace_sq']:.0f} SQ, 45 DEG", "end")
 
     # ---------------- Section B: drain head and stilling tube, 1:20
@@ -188,16 +192,17 @@ def main():
 
     s._layers += L
     iso = project(Compound(children=kit + [S["pole"]]), "iso", "iso")
-    s.add_svg(iso, 276, 32, 140, 100, label="Isometric view", sublabel="Kit on the existing pole; not to scale")
+    s.add_svg(iso, 276, 46, 140, 90, label="Isometric view", sublabel="Kit on the existing pole; not to scale")
     s.add_notes("Main dimensions and interfaces (mm)", [
         f"Datum: road surface at the gauge point, Z = 0; curb {P['curb_h']:.0f}",
         f"Radar lens {P['head_z']:,.0f} above road, {P['head_offset']:.0f} past curb face",
         f"Street depth 0 to 600: range {D['range_dry']:,.0f} to {D['range_600']:,.0f}",
         f"FieldNode 150 x 90 x 200 on {P['pole_od']:.0f} pole, center {P['node_z']:,.0f}",
-        f"Arm {P['arm_sq']:.0f} sq x {D['arm_len']:.0f}; band clamps {P['clamp_dz']:.0f} apart",
+        f"Arm {P['arm_sq']:.0f} sq x {D['arm_len']:.0f} in cleats on a 3 x 100 x {D['bplate_h']:.0f} plate",
+        f"Pole bracket on 2 V-blocks, band clamps {P['clamp_dz']:.0f} apart",
         f"Tube {P['tube_od']:.0f} OD, ID {D['tube_id']:.0f}, {D['tube_len']:.0f} long, 40 slots 5 x 50",
         f"Drain reading {-D['dh_top_level']:.0f} to {-(P['basin_floor'] + 50):,.0f} below road; probe {-D['probe_level']:.0f}",
-        f"Pilot cable route: steel cover {D['cover_len']:,.0f} long, curb and sidewalk anchors; riser guard",
+        f"Pilot cable route: 3 hat covers {D['cover_len']:,.0f} long, curb and sidewalk anchors; riser guard",
         "Marker bands 150 to 300 amber, 300 to 450 red",
         f"Lens height {P['head_band'][0]:,.0f} to {P['head_band'][1]:,.0f} per site, clearance rule (FLG-CAL-001 A7)",
     ], x=276, y=150, width=146)

@@ -239,3 +239,57 @@ This is an appearance model only: no tolerances, no fabrication detail, nothing 
 - Kit 1.5.0 synced: STANDARDS v1.5 (sections 12 to 15: product renders, storefront images and image quality, public release, authorship and signing), `.kit/cards.py`, `.kit/image_qc.py`, `.kit/release_gate.py`, issue templates, and the `/render-product` and `/release` commands. `CLAUDE.md` now matches `.kit/CLAUDE.md`.
 - Every `media/render-*.png` recaptioned from its original render with the new layout: the title, concept label and repository sit in a band above the render and the view note in a band below it, each line wrapped to the image width, so no text overlaps other text or the render or runs off the image. `media/card.png` and `media/social-preview.png` regenerated with the same rules.
 - `python .kit/image_qc.py` and `python .kit/release_gate.py` pass. trl stays 3.
+
+## Session 2026-10-01: design for construction and prototype build plan (kit 1.7.0)
+
+On 2026-09-30 Amish approved the build plan format and asked for it across all repos, with outstanding decisions kept in a separate register, and wrote: "If you are realising that the design cannot be built as per concept - fix the design assumptions to match and be physically feasible as you draw the illustrations." On 2026-10-01 he set budgets as value-engineering targets. This session installed kit 1.7.0 and did `/build-plan` for FloodGauge. TRL stays 3.
+
+### What was done
+
+- Kit 1.7.0 installed (`.kit/`, `.claude/commands/`); `CLAUDE.md` matches `.kit/CLAUDE.md`.
+- `cad/src/model.py` rebuilt as a constructable design with 110 constructability checks (`python cad/src/model.py --check`), all passing; STEP and STL re-exported.
+- `docs/decisions/0003-design-for-construction.md` (FLG-DDR-003, Draft): every change, made under Amish's 2026-09-30 instruction to make the design physically buildable; open for his review.
+- `docs/05-build-plan.md` (FLG-BLD-001 v0.1) with `cad/src/build_plan_media.py`: overview, 16 making sketches (`cad/drawings/FLG-DWG-101` to `116`), 8 joint close-ups and 14 assembly step pictures in `docs/05-build-plan/`.
+- `docs/06-design-decisions.md` (FLG-DEC-001 v0.1): 12 open decisions, 8 items to confirm when parts are bought, a value-engineering section and the decisions made.
+- FLG-CAL-001 v0.4 and `docs/04-calcs/sizing.py` (mass and cable runs now measured on the model; arm, bracket and fixing loads; cost against the value-engineering target); FLG-REQ-001 v0.6; FLG-PRC-001 v0.6; `bom/bom.csv` and `bom/bom-notes.md`; FLG-DWG-001 Rev P4; concept media regenerated; `project.yaml` (`design_state: constructable`, evidence list); `README.md` (links line, key numbers, "Building the prototype"). PDFs rebuilt.
+
+### Design changes made for construction (FLG-DDR-003)
+
+1. Pole bracket: the arm, which ran through the pole, now sits between two angle cleats on a 3 x 100 x 450 mm aluminium plate on two FieldNode V-blocks and two band clamps 400 mm apart; arm 805 to 715 mm.
+2. Knee brace pinned at both ends in two folded clips (it touched the arm at one end and floated at the other).
+3. M8 anti-rotation through-bolt runs across the street through the plate, a 20.2 mm spacer and the pole (it ran through a band clamp); M8 x 110 to M8 x 100.
+4. Head plate under the arm carries the radar housing (the saddle block sat inside the housing); arm centre 4,710 to 4,713 mm so the lens stays at 4,600 mm.
+5. Side gland on the radar head; street cable along the arm and down the pole to port A (it passed through the arm).
+6. FieldNode drawn as its constructable design (FND-BLD-001) with its own V-blocks, bands and panel bracket; centre raised from 3.0 to 3.4 m so the street cable fits its 3 m I2C limit along the real route.
+7. Drain cable comes up through the grate opening nearest the curb (the 5 mm grate-to-frame gap cannot pass a 10 mm cable).
+8. Three bolted hat-section covers (gutter, curb face, sidewalk) and a U-channel riser guard strapped to the pole replace the unfixed angle and the riser guard that stood 250 mm from the pole.
+9. Two stand-off pipe clamps hold the stilling tube (the brackets were set into the basin wall).
+10. A 75 mm socket under the drain head slides over the tube top and is screwed (it rested on the tube).
+11. Depth marker plate 3 to 2 mm, bottom 15 mm above the sidewalk, on two band clamps that also hold the riser guard.
+12. To hold R15: arm and brace walls 2.0 to 1.6 mm and two windows in the bracket plate.
+
+### Key results
+
+- Mass on the pole 4.74 to 4.99 kg against 5.0 kg (R15 met on paper, 0.01 kg margin on estimates). Misuse case: arm 60 MPa (factor 3.6), brace 1,504 N against 73 kN buckling, band pull 1,063 N against 2,000 N. Twist factor 37 unchanged.
+- Value-engineering target: USD 160. Estimated cost of the constructable design: USD 190.50 for FloodGauge-specific parts (USD 30.50 over the target); USD 329.50 with the FieldNode core.
+- Requirement status: 1 not met (R12, installation 120 min against 90 min), 3 at risk (R7, R9, R14), 1 not verifiable at TRL 3 (R10), 8 met on paper, 3 met by design; R16 over the value-engineering target by USD 30.50.
+
+### Proposed, awaiting Amish
+
+All open items are in `docs/06-design-decisions.md`: review of FLG-DDR-003; node height 3.4 m; the thin R15 margin; grate lifting with the cable through the grate; R12 at 120 min; pilot partner and city; the four render items of 2026-09-26; alert governance; theft protection.
+
+### Stale media (made on Amish's Mac)
+
+The design changed visibly, so `media/render-hero.png`, `media/render-exploded.png`, `media/render-detail.png`, `media/card.png` and `media/social-preview.png` are stale, and `cad/src/product_model.py` still draws the concept arm, saddle, cover and node height. They were not regenerated here.
+
+### Safety
+
+The build plan carries safety stops for traffic, work at height, drilling the pole, the open catch basin and stormwater, and the FieldNode cell. The sidewalk cover is a trip hazard if not kept flat, beveled and marked. Drilling the pole needs the owner's written permission.
+
+### Notes
+
+- Kit: no kit files were edited. `.kit/build_views.py` drops a part silently when a window or cut intersection of a fused compound returns an empty shape (seen once on the pipe clamps; worked around by moving the cut plane 0.3 mm).
+
+### Recommended next step
+
+Amish reviews FLG-DDR-003 and the register. TRL 4 stays on hold; nothing was built or bought.

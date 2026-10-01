@@ -3,9 +3,9 @@ doc_id: FLG-CAL-001
 title: FloodGauge sizing calculations
 project: FloodGauge
 doc_type: Calculation
-version: "0.3"
+version: "0.4"
 status: Draft
-date: '2026-09-26'
+date: '2026-10-01'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -21,17 +21,21 @@ revisions:
   date: '2026-09-26'
   author: Amish Chadha
   change: Budget approved by Amish ($160); R16 from not met to met on paper
+- version: "0.4"
+  date: '2026-10-01'
+  author: Amish Chadha
+  change: Constructable design (FLG-DDR-003); arm, bracket and brace loads, mass from the model, cable runs along their real routes, cost against the value-engineering target
 ---
 
 # FloodGauge sizing calculations
 
-This v0.2 applies the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets twelve of its seventeen requirements (nine by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses one. R3 is now met on paper. R12 (a 90 min surface-only installation) is still not met: the surface route removes the civil work, but fitting its cover brings the total to 120 min. The cover and the through-bolt take the FloodGauge-specific parts to $153.50, which the $160 budget covers, so R16 is met on paper. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
+This v0.4 checks the constructable design of FLG-DDR-003 (pole bracket on V-blocks and band clamps, pinned knee brace, head plate, FieldNode at 3.4 m, three hat-section covers, stand-off pipe clamps); sections H, I, J, L and M change, the rest stand. Version 0.2 applied the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets twelve of its seventeen requirements (nine by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses one. R3 is now met on paper. R12 (a 90 min surface-only installation) is still not met: the surface route removes the civil work, but fitting its cover brings the total to 120 min. The parts added to make the design buildable take the FloodGauge-specific parts to $190.50, $30.50 over the value-engineering target of $160 (a hypothetical control target, not a limit), and the mass on the pole to 4.99 kg, 0.01 kg under R15's 5.0 kg. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
 
 > **Safety:** These are first-principles estimates for a paper proof of concept. They do not show that the gauge will warn anyone in time, and they are no substitute for tests of the heads, the enclosure or the alert chain. FloodGauge supplements official warnings. See FLG-PRC-001, Safety.
 
 ## Scope and method
 
-The note checks every requirement in FLG-REQ-001 v0.5 against the design in FLG-PRC-001 v0.5 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P2. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
+The note checks every requirement in FLG-REQ-001 v0.6 against the design in FLG-PRC-001 v0.6 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P4. Masses of the made parts and the cable runs are measured on the model. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
 
 The design case is a street with a 150 mm curb and a catch basin 1.3 m deep beside a 60 mm street pole 4.9 m tall above the sidewalk, with tall vehicles in the curb lane, air from -20 to 50 °C, a private LoRaWAN gateway (TwinKit) on EU868, and the FieldNode core as costed and sized in its own repo (FND-CAL-001).
 
@@ -68,7 +72,7 @@ The design case is a street with a 150 mm curb and a catch basin 1.3 m deep besi
 - **Radar.** The error budget is module ±2.0 mm (assumed), datum ±5.0 mm, pole expansion ±1.98 mm (the arm is now 4.71 m up) and surface ripple ±3.0 mm, which gives ±6.5 mm root sum square and ±12.0 mm if every term is at its worst at once [B1]. R2 (±10 mm) is met on paper by the root sum square, with the module accuracy still unverified.
 - **Ultrasonic variant, uncompensated.** Calibrated at 20 °C, the range error is +349 mm at -20 °C and -231 mm at 50 °C, because the speed of sound runs from 319.2 to 361.6 m/s [B2].
 - **Ultrasonic variant, compensated.** With an air sensor within ±3 K of the air column, the temperature term is ±24.4 mm and the total ±27.0 mm at the 4.6 m height [B3]. R2 is not met by the ultrasonic variant, which confirms the choice of radar (D3). Sun on the road makes the ±3 K figure itself optimistic.
-- **Arm deflection.** The 40 x 40 x 2 mm arm (I = 73,365 mm⁴) moves 0.20 mm under a 1 kg bird at the head even without the brace [B4]; negligible.
+- **Arm deflection.** The 40 x 40 x 1.6 mm arm (I = 60,503 mm⁴) moves 0.22 mm under a 1 kg bird at the head even without the brace [B4]; negligible.
 
 ## C. Drain level and stilling tube (R4, R3)
 
@@ -121,21 +125,23 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 - **Rules defined.** Reject depths above 600 mm; reject a step above 50 mm between 10 s samples unless the drain head is full or rising; require three consecutive readings above a band; subtract the dry-road background recorded at installation (A2); and flag a gauge that has been silent for 30 min [G2].
 - **Status.** The rules cover the obvious cases, but the target (one false alert per gauge per year or fewer) can only be checked from a field log. R10 is not verifiable at TRL 3.
 
-## H. Arm, brace and clamps (R15)
+## H. Arm, brace, pole bracket and clamps (R15)
 
-- **Wind twist.** Wind along the street at 35 m/s puts 42.3 N on the arm, 6.2 N on the head and 19.0 N on the brace, twisting the arm about the pole with 24.9 N·m [H1]. Two band clamps at 1,000 N preload hold 36.0 N·m by friction, a factor of only 1.45 [H2]. A twisted arm moves the head along the street, not up or down, so it does not bias the depth, but it would put the head over a different part of the gutter or the traffic lane.
-- **Anti-rotation bolt (FLG-DDR-002).** An M8 A4-70 through-bolt through the lower clamp band and the pole carries 15.4 kN in shear per plane; the pole wall bears 18.0 kN with an assumed 2.5 mm wall. The lower of the two, acting as a couple across the 60 mm pole, resists 922 N·m, a factor of 37 against the wind twist [H2b]. Drilling the pole needs the asset owner's permission.
-- **Misuse.** A 50 kg person hanging on the head gives 132 N·m at the brace joint and 36 MPa in the arm against 214 MPa (factor 5.9); the brace carries 1,213 N against a buckling load of 43,529 N [H3]. The upper clamp pulls 858 N against a band capacity of 2,000 N (factor 2.3), and 1,200 N of slip resistance holds 520 N down [H4].
+- **Load path (FLG-DDR-003).** The arm is held between two angle cleats on a 3 mm bracket plate that sits on the pole on two V-blocks and two band clamps 400 mm apart; a 25 x 25 x 1.6 mm brace is pinned between a clip under the arm and a clip on the plate, 358 mm between pins at 45°. The arm carries pull into the cleats and the brace pushes on the plate above the lower band.
+- **Wind twist.** Wind along the street at 35 m/s puts 43.0 N on the arm, 6.2 N on the head and 13.4 N on the brace, twisting the arm about the pole with 24.8 N·m [H1]. Two band clamps at 1,000 N preload hold 36.0 N·m by friction, a factor of only 1.45 [H2]. A twisted arm moves the head along the street, not up or down, so it does not bias the depth.
+- **Anti-rotation bolt.** The M8 A4-70 through-bolt now runs across the street through the bracket plate, a 20.2 mm spacer and both pole walls (a band clamp cannot take a bolt). It carries 15.4 kN in shear per plane; the pole wall bears 18.0 kN with an assumed 2.5 mm wall. Acting as a couple across the 60 mm pole it resists 922 N·m, a factor of 37 against the wind twist [H2b]. Drilling the pole needs the asset owner's permission.
+- **Misuse.** A 50 kg person hanging on the head gives 181 N·m at the top brace pin and 60 MPa in the 1.6 mm arm wall against 214 MPa (factor 3.6); the brace carries 1,504 N against a buckling load of 73,043 N [H3]. The arm pulls on the cleats with 1,063 N, carried by the upper band against 2,000 N (factor 1.9), and 1,200 N of slip resistance holds 520 N down [H4].
+- **Fixings.** M6 A4-70 bolts carry 8.4 kN per shear plane: the arm cleat joint (two bolts in double shear) holds 34 kN and the 1.6 mm arm walls 23.0 kN in bearing against the 1.06 kN pull; each brace pin in double shear holds 16.9 kN against 1.50 kN [H5].
 
 ## I. Mass on the pole (R15)
 
-- **Items.** FieldNode 2.41 kg (FND-CAL-001), arm tube 0.66 kg and brace 0.25 kg (from the model), clamps 0.30 kg, saddle 0.10 kg, radar head 0.25 kg, street cable 0.21 kg (3 m), drain cable on the pole 0.18 kg, through-bolt 0.05 kg, marker plate 0.33 kg [I1].
-- **Total.** 4.74 kg against 5.0 kg, a 5 % margin (v0.1: 4.62 kg) [I2]. R15 is met on paper. FieldNode's proposed 0.15 kg sun shield would take it to 4.89 kg, still inside the limit.
+- **Items.** FieldNode 2.45 kg (its constructable design, FND-BLD-001); from the model: bracket plate 0.27 kg, V-blocks 0.14 kg, cleats 0.05 kg, brace clips 0.07 kg, arm 0.47 kg, brace 0.15 kg, head plate 0.08 kg, band clamps 0.04 kg, through-bolt and spacer 0.05 kg, M6 fixings, sleeves, pins and head screws 0.27 kg, marker plate 0.21 kg and its band clamps 0.06 kg; radar head 0.25 kg (assumed); street cable 0.21 kg (3 m); drain cable on the pole 0.22 kg [I1].
+- **Total.** 4.99 kg against 5.0 kg, a margin of 0.01 kg (v0.3: 4.74 kg) [I2]. R15 is met on paper, with a margin within the accuracy of the estimate; the arm and brace walls went from 2.0 to 1.6 mm and the bracket plate has two windows to hold it. The riser guard and the three covers (2.00 kg) stand on the sidewalk and are not carried by the pole. Weighing the prototype is a TRL 4 check (FLG-DEC-001, open decision 3).
 
 ## J. Cables and ports (R11 context)
 
-- **Street cable.** With the head at 4.6 m and the FieldNode center at 3.0 m, the run is 2,380 mm; with 300 mm of drip loops it fits a 3 m cable, and the I2C bus is about 350 pF against the 400 pF limit [J1]. Leaving the FieldNode at 2.35 m would have needed a 5 m cable and about 550 pF, over the limit, which is why the node moved up.
-- **Drain cable.** The surface route is 4,100 mm; with 500 mm of loops it fits the 5 m cable, which carries UART and the analog wet probe [J2].
+- **Street cable.** Measured along its real route on the model (from the head's side gland along the arm, down the pole outside the band clamps and up to port A under the FieldNode box), the run is 2,641 mm with the FieldNode centre at 3.4 m; with 300 mm of drip loops it fits a 3 m cable, and the I2C bus is about 350 pF against 400 pF [J1]. With the node at 3.0 m the same route needed 3.34 m with loops, which is why the node moved up (FLG-DDR-003, P6).
+- **Drain cable.** Up through the grate opening, under the three covers, up the riser guard and the pole to port B, the run is 4,335 mm; with 500 mm of loops it fits the 5 m cable, which carries UART and the analog wet probe [J2].
 - **Ports.** The street head uses port A at 3.3 V (I2C) and the drain head port B at 5 V (UART plus the analog pin), consistent with FieldNode's one switched rail per port [J3].
 
 ## K. Submersion (R9)
@@ -144,13 +150,13 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 ## L. Installation (R12)
 
-- **Surface work.** Traffic protection 10 min, arm and brace from a mobile platform 15 min, anti-rotation bolt 5 min, FieldNode and street head 15 min, marker 5 min, survey and dry background 10 min, grate lift 5 min, two wall anchors drilled through the grate opening 20 min, tube and head 10 min, surface cable cover 25 min: 120 min in all [L1].
-- **Cable route (FLG-DDR-002).** For pilots the drain cable leaves the basin at the grate frame and runs under 0.76 m of bolted steel cover across the gutter strip, up the curb face and across the sidewalk to a riser guard at the pole. The anchors go into the curb and sidewalk only, none into the road [L2]. The conduit (coring the basin wall and a 0.56 m trench) is kept for permanent sites installed with road works.
+- **Surface work.** Traffic protection 10 min, the arm and bracket (assembled on the ground) lifted and clamped from a mobile platform 15 min, anti-rotation bolt 5 min, FieldNode and street head 15 min, marker 5 min, survey and dry background 10 min, grate lift 5 min, two wall anchors drilled through the grate opening 20 min, tube and head 10 min, the three covers, riser guard and marker clamps 25 min: 120 min in all [L1].
+- **Cable route (FLG-DDR-002).** For pilots the drain cable comes up through the grate opening nearest the curb (FLG-DDR-003, P7) and runs under 0.76 m of bolted steel hat-section cover across the gutter strip, up the curb face and across the sidewalk to a riser guard at the pole. The anchors go into the curb and sidewalk only, none into the road [L2]. The conduit (coring the basin wall and a 0.50 m trench) is kept for permanent sites installed with road works.
 - **R12 is still not met,** now on time alone: 120 min against 90 min, with no civil work. A new proposal is in `docs/REVIEW.md`.
 
 ## M. Cost (R16)
 
-- The BOM has 10 lines, all priced. FloodGauge-specific parts (lines 2 to 10) cost $153.50 against the $160 in `project.yaml` (approved by Amish on 2026-09-26; was $150), a $6.50 margin; with the $126.00 FieldNode core, a complete gauge costs $279.50 [M1]. The surface cable cover ($14.00, replacing the $8.00 conduit) and the through-bolt ($2.00) account for the rise from $145.50. R16 is met on paper. Radar module, housing and cover prices are indicative.
+- The BOM has 10 lines, all priced. Value-engineering target: USD 160. Estimated cost of the constructable design: USD 190.50 for the FloodGauge-specific parts (lines 2 to 10), USD 30.50 over the target; with the USD 139.00 FieldNode core (its constructable design), a complete gauge costs USD 329.50 [M1]. The pole bracket, cleats, clips, head plate and their fixings (line 3, USD 20.00 to 35.00), the three covers and riser guard (line 7, USD 14.00 to 26.00), the stand-off pipe clamps (line 5, USD 14.00 to 18.00), the marker band clamps (line 8, USD 6.00 to 10.00) and the drain head socket (line 4, USD 22.50 to 24.50) account for the rise from USD 153.50. The main cost drivers are the radar head, the arm and bracket, the covers and the drain head [M2]. R16 is reported against the value-engineering target; savings worth trying are listed in FLG-DEC-001. Radar module, housing and cover prices are indicative.
 
 ## Results
 
@@ -170,13 +176,20 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | R6 | Alert latency | 82 s at the 95th percentile; 110 s worst without packet loss | 120 s, 95 % of events | Met on paper (private gateway) |
 | R8 | Energy autonomy | 68 days nominal, 47 days at -20 °C | 5 days at event sampling | Met on paper |
 | R13 | Level datum | Tape and radar dry-background survey; yearly marker check | ±5 mm | Met on paper |
-| R15 | Mounting | 4.74 kg; twist factor 37 with the through-bolt | 40 to 60 mm poles; 5 kg | Met on paper |
-| R16 | Cost | $153.50 FloodGauge-specific; $279.50 with FieldNode | $160 FloodGauge-specific | Met on paper |
+| R15 | Mounting | 4.99 kg; twist factor 37 with the through-bolt | 40 to 60 mm poles; 5 kg | Met on paper |
+| R16 | Cost | $190.50 FloodGauge-specific; $329.50 with FieldNode | $160 FloodGauge-specific (value-engineering target) | Over the value-engineering target by $30.50 |
 | R5 | Sampling rate | 60 s and 10 s schedule in the sampling logic | 60 s; 10 s in events | Met by design |
 | R11 | Privacy | Levels, status and battery only | No camera or microphone | Met by design |
 | R17 | Open data | JSON or CSV through the gateway | Open format | Met by design |
 
-Counts: 1 not met, 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design.
+Counts: 1 not met, 3 at risk, 1 not verifiable at TRL 3, 8 met on paper, 3 met by design; R16 is over the value-engineering target by $30.50.
+
+## Changes in v0.4 (FLG-DDR-003, design for construction)
+
+- Arm and bracket: the arm (now 715 mm, 40 x 40 x 1.6 mm) sits in cleats on a pole bracket plate on V-blocks; the brace (25 x 25 x 1.6 mm) is pinned in two clips; the through-bolt runs across the street. Misuse case: arm stress 36 to 60 MPa (factor 5.9 to 3.6), band pull 858 to 1,063 N (factor 2.3 to 1.9). Twist factor 37 unchanged.
+- Mass on the pole 4.74 to 4.99 kg, now measured on the model; R15 still met on paper with a 0.01 kg margin.
+- FieldNode centre 3.0 to 3.4 m; street cable run 2.64 m along its real route (2.94 m with loops in 3 m); drain cable 4.34 m (4.83 m in 5 m).
+- Cost USD 153.50 to 190.50 FloodGauge-specific; R16 now reported against the value-engineering target (USD 30.50 over). FieldNode core USD 126.00 to 139.00 and 2.41 to 2.45 kg (its constructable design).
 
 ## Changes in v0.3 (budget approved)
 

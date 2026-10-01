@@ -2,13 +2,13 @@
 
 ![TRL 3](https://img.shields.io/badge/TRL-3%20of%209-0F766E) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-111827) ![Software: MIT](https://img.shields.io/badge/software-MIT-111827) [![DOI](https://zenodo.org/badge/1388476449.svg)](https://zenodo.org/badge/latestdoi/1388476449) [![REUSE compliant](https://github.com/BoujeeEnjinia1701/floodgauge/actions/workflows/reuse.yml/badge.svg)](https://github.com/BoujeeEnjinia1701/floodgauge/actions/workflows/reuse.yml) [![Archived in Software Heritage](https://archive.softwareheritage.org/badge/origin/https://github.com/BoujeeEnjinia1701/floodgauge/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/BoujeeEnjinia1701/floodgauge)
 
-**Area:** Smart Cities · **TRL:** 3 of 9 (proof of concept on paper) · **Prototype budget:** $160 USD for FloodGauge-specific parts (FieldNode costed separately) · **Difficulty:** 2 of 5
+**Area:** Smart Cities · **TRL:** 3 of 9 (proof of concept on paper) · **Value-engineering target:** USD 160 for FloodGauge-specific parts; estimated cost of the constructable design USD 190.50 (FieldNode costed separately) · **Difficulty:** 2 of 5
 
 A street and drain water level sensor using ultrasonic or radar ranging, warning residents and crews when drains back up or streets begin to flood.
 
 ![FloodGauge: street and drain water level sensor, product render](media/render-hero.png)
 
-[Exploded render](media/render-exploded.png) · [Detail render](media/render-detail.png) · [Interactive 3D model](media/viewer.html) · [Concept blueprint (PDF)](media/concept-blueprint.pdf) · [General arrangement (PDF)](cad/drawings/FLG-DWG-001.pdf) · [Calculations](docs/04-calcs/01-sizing.md) · [Review note](docs/REVIEW.md)
+[Exploded render](media/render-exploded.png) · [Detail render](media/render-detail.png) · [Interactive 3D model](media/viewer.html) · [Concept blueprint (PDF)](media/concept-blueprint.pdf) · [General arrangement (PDF)](cad/drawings/FLG-DWG-001.pdf) · [Calculations](docs/04-calcs/01-sizing.md) · [Prototype build plan](docs/05-build-plan.md) · [Design decisions](docs/06-design-decisions.md) · [Review note](docs/REVIEW.md)
 
 ## Concept rationale
 
@@ -63,14 +63,20 @@ Full design precis: [docs/02-concept.md](docs/02-concept.md)
 ## Key components
 
 - FieldNode core (enclosure, 6 W solar panel, LiFePO4 cell, LoRaWAN radio), shared with other lab projects
-- Street head: 60 GHz radar on a short arm over the gutter, lens 2.5 to 5.0 m above the road as the site's clearance rule requires (4.6 m in the reference design), with an anti-rotation through-bolt
+- Street head: 60 GHz radar on a short braced arm over the gutter, lens 2.5 to 5.0 m above the road as the site's clearance rule requires (4.6 m in the reference design), on a pole bracket with two V-blocks, two band clamps and an anti-rotation through-bolt
 - Drain head: waterproof ultrasonic ranger with wet probe and temperature sensor, in a slotted 75 mm stilling tube inside the catch basin
-- Surface cable route for pilots under a bolted steel cover (conduit at permanent sites), depth marker plate with 150 mm and 300 mm bands
+- Surface cable route for pilots under three bolted steel covers and a riser guard (conduit at permanent sites), depth marker plate with 150 mm and 300 mm bands
 - Open alert service on a LoRaWAN gateway such as TwinKit
 
-TRL 3 calculations ([FLG-CAL-001](docs/04-calcs/01-sizing.md)): alert latency 82 s at the 95th percentile (110 s worst case), street depth error ±6.5 mm with radar, drain level error ±11 mm, under 10 mW of sensor load, 4.74 kg on the pole, and $153.50 of FloodGauge-specific parts against the $160 budget ($279.50 with the $126 FieldNode core). One requirement is not met: installation takes 120 min against 90 min. See the [design precis](docs/02-concept.md) and [requirements](docs/03-requirements.md). The design choices were decided by Amish on 2026-09-25 ([FLG-DDR-001](docs/decisions/0001-trl2-review-decisions.md), [FLG-DDR-002](docs/decisions/0002-recommendations-accepted.md)).
+TRL 3 calculations ([FLG-CAL-001](docs/04-calcs/01-sizing.md)) on the constructable design: alert latency 82 s at the 95th percentile (110 s worst case), street depth error ±6.5 mm with radar, drain level error ±11 mm, under 10 mW of sensor load and 4.99 kg on the pole. Value-engineering target: USD 160. Estimated cost of the constructable design: USD 190.50 for FloodGauge-specific parts (USD 30.50 over the target); USD 329.50 with the USD 139 FieldNode core. One requirement is not met: installation takes 120 min against 90 min. See the [design precis](docs/02-concept.md) and [requirements](docs/03-requirements.md). The design choices were decided by Amish on 2026-09-25 ([FLG-DDR-001](docs/decisions/0001-trl2-review-decisions.md), [FLG-DDR-002](docs/decisions/0002-recommendations-accepted.md)); the changes that make the design buildable are in [FLG-DDR-003](docs/decisions/0003-design-for-construction.md), open for Amish's review.
 
 The working bill of materials is in [bom/bom.csv](bom/bom.csv).
+
+## Building the prototype
+
+The [prototype build plan](docs/05-build-plan.md) (FLG-BLD-001) shows how to make and fit every component, in order, with a making sketch for each made part, close-ups of the joints and a picture for every assembly step. Sixteen parts are made in a small workshop from aluminium plate, bar, angle and tube, folded galvanized strip and slotted PVC pipe; the rest are bought or built to the FieldNode plan. The design was checked for construction on the model (110 checks), which changed the arm mounting, the brace, the cable covers and the drain head fixing ([FLG-DDR-003](docs/decisions/0003-design-for-construction.md)). Decisions still open are in the [design decisions register](docs/06-design-decisions.md). It is a plan, not yet built.
+
+![FloodGauge prototype: every component, laid out in build order](docs/05-build-plan/overview.png)
 
 ## Safety
 
