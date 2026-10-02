@@ -24,7 +24,7 @@ trl_evidence:
   - docs/06-design-decisions.md
 shortlisted: false
 pitch: >-
-  A street and drain water level sensor using ultrasonic or radar ranging, warning residents and crews when drains back up or streets begin to flood.
+  A street and drain water level sensor using ultrasonic or radar ranging that publishes levels to a city's alert service, so crews and residents can be warned when drains back up or streets begin to flood.
 problem: >-
   Urban flash floods rise in minutes, and warnings rely on river gauges far from the streets that flood.
 budget_usd: 160

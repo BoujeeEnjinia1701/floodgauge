@@ -3,9 +3,9 @@ doc_id: FLG-PRB-001
 title: FloodGauge problem statement
 project: FloodGauge
 doc_type: Problem statement
-version: "0.4"
+version: "0.5"
 status: Draft
-date: '2026-09-26'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -25,6 +25,10 @@ revisions:
   date: '2026-09-26'
   author: Amish Chadha
   change: Budget approved by Amish ($160)
+- version: "0.5"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "Open questions on the pilot partner and alert ownership answered by Amish's 2026-10-02 decisions"
 ---
 
 # FloodGauge problem statement
@@ -86,10 +90,10 @@ Operating context (assumed, to be confirmed with partners):
 ## Open questions
 
 - [ ] Which alert depths do local crews and residents want? The default 150 mm and 300 mm bands follow NWS guidance but are not validated locally; in a fast flood the first alert arrives at about 190 to 250 mm (FLG-CAL-001).
-- [ ] Who owns the alert service and the duty to act on an alert?
+- [x] Who owns the alert service and the duty to act on an alert? Decided by Amish, 2026-10-02: the partner city's emergency management office; FloodGauge publishes levels and band crossings only.
 - [ ] Can a cable be run from the catch basin to the pole, or does the drain head need its own node?
 - [ ] Is an arm over the gutter allowed by the road authority, and at what height? At 2.95 m it is inside the envelope of a 4 m truck at the curb (FLG-CAL-001).
-- [ ] Which pilot partner and city? (FLG-DDR-001 O1, awaiting Amish.)
+- [x] Which pilot partner and city? Decided by Amish, 2026-10-02 (FLG-DDR-001 O1): a city or county flood agency with street flooding at grated curb inlets and an existing gauge or alert programme; the first candidate type to approach is a county flood control district such as the Harris County Flood Control District in Houston. Nothing is agreed.
 - [ ] What does the pilot city's LoRaWAN coverage look like at street level near inlets?
 
 ## User research and co-design

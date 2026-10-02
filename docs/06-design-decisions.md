@@ -3,9 +3,9 @@ doc_id: FLG-DEC-001
 title: FloodGauge design decisions register
 project: FloodGauge
 doc_type: Design decisions register
-version: "0.1"
+version: "0.2"
 status: Draft
-date: '2026-10-01'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -13,6 +13,10 @@ revisions:
     date: '2026-10-01'
     author: Amish Chadha
     change: Register opened with the open decisions from REVIEW.md, FLG-DDR-001 to FLG-DDR-003 and the build plan work
+  - version: "0.2"
+    date: '2026-10-02'
+    author: Amish Chadha
+    change: "Amish approved the recommendations for all twelve open decisions on 2026-10-02 (FLG-DDR-003 accepted); moved to decisions made"
 ---
 
 # FloodGauge design decisions register
@@ -21,22 +25,7 @@ Every design decision still to be made, and every decision made, in one place. E
 
 ## Open decisions
 
-*Table 1. Open decisions, all Proposed, awaiting Amish.*
-
-| # | Decision needed | Options | Recommendation | Affects in the build | Source |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Accept the design for construction changes (P1 to P11) | Accept; accept with changes; return to the concept | Accept | Every component and step of the build plan | FLG-DDR-003 |
-| 2 | Node height 3.4 m (was 3.0 m), so the street cable fits the 3 m I2C limit along its real route | Keep 3.4 m; keep 3.0 m with an I2C bus extender and a 4 m cable | Keep 3.4 m | FieldNode position on the pole (step 7); cable lengths | FLG-DDR-003, P6 |
-| 3 | R15 mass margin is 0.01 kg on estimated masses (4.99 kg against 5.0 kg) | Accept and weigh the prototype at TRL 4; lighten further now (for example a 2.5 mm bracket plate) | Accept and weigh at TRL 4 | Bracket plate thickness | FLG-DDR-003, A1 |
-| 4 | Lifting the grate with the drain cable threaded through a grate opening | Undo the gutter cover's two anchor nuts and lift the grate with a 0.5 m slack loop in the basin; add an inline M12 joint at the riser guard foot | First option for the pilot; review after the first cleaning visit | Drain cable slack; maintenance | FLG-DDR-003, A2 |
-| 5 | R12 installation takes 120 min against 90 min on the surface route | Relax R12 to 120 min for the pilot route; keep 90 min and prefabricate the cover and bracket set | Relax R12 to 120 min for the pilot route | None (installation time only) | REVIEW.md, 2026-09-25, item 3; FLG-DDR-002, O3 |
-| 6 | Pilot partner and city for co-design and a first site; depth of the first alert band below 150 mm | Not yet identified | None made | Site pole, curb lane traffic, lens height within 2.5 to 5.0 m | FLG-DDR-001, O1; FLG-DDR-002, N5 |
-| 7 | Render layout of the pole kit drawn 3.3 m lower than installed | Keep as a render-only layout with a caption; render true heights | Keep, with the caption | Photoreal renders only | REVIEW.md, 2026-09-26, item 1 |
-| 8 | Drain kit shown only in the exploded render | Accept; add a cutaway render through the basin | Accept | Photoreal renders only | REVIEW.md, 2026-09-26, item 2 |
-| 9 | Side gland on the radar head and the street cable route | Adopt (now in the model, FLG-DDR-003 P5) | Adopt | Radar head housing (section 3.8 of the build plan) | REVIEW.md, 2026-09-26, item 3 |
-| 10 | Appearance details not in the BOM (clear lid window, name plate, status light, cover ridges) | Render detail only; raise a clear-lid node in the FieldNode repo | Render detail only | None | REVIEW.md, 2026-09-26, item 4 |
-| 11 | Alert governance: who receives alerts, who acts, how residents opt in and out | To be set with the partner city | None made | Alert service only | FLG-PRC-001, open questions |
-| 12 | Theft and vandalism protection with the node at 3.4 m and the marker and guard at street level | Tamper-resistant screw heads; leave as designed for the pilot | None made | Fixings on the marker bands and covers | FLG-PRC-001, open questions |
+None. All open decisions were decided on 2026-10-02.
 
 ## To confirm when parts are bought
 
@@ -72,4 +61,16 @@ Savings worth trying:
 | 2026-09-25 | TRL 3 items N1 to N5: R3 restated; lens set per site within 2.5 to 5.0 m (4.6 m reference); surface cable route for pilots with conduit at permanent sites; M8 anti-rotation through-bolt; a first alert band below 150 mm supported | Amish, same instruction | FLG-DDR-002 |
 | 2026-09-26 | `budget_usd` set to USD 160 | Amish: "i approve all the budget items." | FLG-DDR-002 |
 | 2026-10-01 | Budgets are value-engineering targets, not limits; cost is reported over or under the target | Amish: "the budgets are a hypothethical control target to ensure we are thinking along a value engineering lens. its ok to ensure wording reflects that the hypothesis budget was x - the real cost being accrued is y" | STANDARDS section 18 |
-| 2026-10-01 | Design for construction, P1 to P11 | Made under Amish's 2026-09-30 instruction to make the design physically buildable ("fix the design assumptions to match and be physically feasible"); open for his review (open decision 1) | FLG-DDR-003 |
+| 2026-10-01 | Design for construction, P1 to P11 | Made under Amish's 2026-09-30 instruction to make the design physically buildable ("fix the design assumptions to match and be physically feasible"); accepted on 2026-10-02 (below) | FLG-DDR-003 |
+| 2026-10-02 | Design for construction accepted: the changes P1 to P11 of FLG-DDR-003 and their knock-on changes, as made | Amish: "i approve your recommendations for all 555 open decisions." | FLG-DDR-003 |
+| 2026-10-02 | Node kept at 3.4 m, so the street cable fits the 3 m I2C limit along its real route | Amish: "i approve your recommendations for all 555 open decisions." | FLG-DDR-003, P6 |
+| 2026-10-02 | R15 mass margin of 0.01 kg accepted; the prototype is weighed at TRL 4, and a 2.5 mm bracket plate is the named fix if the weighed mass is over 5.0 kg | Amish: "i approve your recommendations for all 555 open decisions." | FLG-DDR-003, A1 |
+| 2026-10-02 | Grate lifting for the pilot: undo the gutter cover's two anchor nuts and lift the grate with the cable threaded and a 0.5 m slack loop in the basin, the loop tied to the stilling tube clamp so it cannot catch debris; reviewed after the first cleaning visit | Amish: "i approve your recommendations for all 555 open decisions." | FLG-DDR-003, A2 |
+| 2026-10-02 | R12 relaxed to 120 min for the pilot surface route; 90 min stays the target for permanent sites built on the conduit route with road works | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-25, item 3; FLG-DDR-002, O3 |
+| 2026-10-02 | Pilot partner: a city or county flood agency with a known street-flooding problem at grated curb inlets and an existing gauge or alert programme. First candidate type to approach: a county flood control district such as the Harris County Flood Control District in Houston. First alert band at 100 mm unless the partner's own practice says otherwise | Amish: "i approve your recommendations for all 555 open decisions." | FLG-DDR-001, O1; FLG-DDR-002, N5 |
+| 2026-10-02 | Render-only layout of the pole kit kept, with the caption; the caption's heights are updated to the 3.4 m node when the renders are redone | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-26, item 1 |
+| 2026-10-02 | Drain kit shown in the exploded render only; a basin cutaway render only if the drain head is shown as a product on its own | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-26, item 2 |
+| 2026-10-02 | Side gland on the radar head and the street cable route closed as adopted with item 1 (FLG-DDR-003, P5) | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-26, item 3; FLG-DDR-003, P5 |
+| 2026-10-02 | Clear lid window, name plate, status light and cover ridges are render detail only; no clear-lid node is raised with FieldNode | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-26, item 4 |
+| 2026-10-02 | Alert governance: the partner city's emergency management office owns the alerts. FloodGauge publishes levels and band crossings only, the city decides who acts, and residents opt in and out through the city's existing alert channel, so the project holds no resident contact data | Amish: "i approve your recommendations for all 555 open decisions." | FLG-PRC-001, open questions |
+| 2026-10-02 | Tamper-resistant screw heads and nuts on everything within reach of the sidewalk (marker bands, covers, riser guard and anchors) for the pilot; the node stays at 3.4 m as designed | Amish: "i approve your recommendations for all 555 open decisions." | FLG-PRC-001, open questions |

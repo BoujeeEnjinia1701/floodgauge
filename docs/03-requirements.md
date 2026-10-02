@@ -3,9 +3,9 @@ doc_id: FLG-REQ-001
 title: FloodGauge requirements
 project: FloodGauge
 doc_type: Requirements
-version: "0.6"
+version: "0.7"
 status: Draft
-date: '2026-10-01'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -33,11 +33,15 @@ revisions:
   date: '2026-10-01'
   author: Amish Chadha
   change: Status from FLG-CAL-001 v0.4 (constructable design, FLG-DDR-003); R16 reported against the value-engineering target
+- version: "0.7"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "R12 relaxed to 120 min for the pilot surface route (90 min at permanent sites), now met on paper; R15 fix named; first alert band 100 mm (decisions of 2026-10-02)"
 ---
 
 # FloodGauge requirements
 
-These requirements are checked by calculation in FLG-CAL-001 v0.4, on the constructable design of FLG-DDR-003. The design choices behind them were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002). Three targets have changed at TRL 3: R16 covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo (DDR-001 D1); R1 allows a mounting height of 2.5 to 5.0 m, set per site to the road authority's clearance rule; and R3 is restated to the reach of the drain head plus a drain-full signal (both DDR-002). On 2026-09-26 Amish set `budget_usd` to $160 (DDR-002); on 2026-10-01 he described budgets as hypothetical value-engineering targets, so R16 is reported over or under the $160 target rather than as met or not met. The status column states "not met" plainly.
+These requirements are checked by calculation in FLG-CAL-001 v0.4, on the constructable design of FLG-DDR-003. The design choices behind them were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002). Three targets have changed at TRL 3: R16 covers FloodGauge-specific parts only, with the FieldNode core costed in its own repo (DDR-001 D1); R1 allows a mounting height of 2.5 to 5.0 m, set per site to the road authority's clearance rule; and R3 is restated to the reach of the drain head plus a drain-full signal (both DDR-002). On 2026-10-02 Amish relaxed R12 to 120 min for the pilot surface route, keeping 90 min for permanent sites (FLG-DEC-001, item 5). On 2026-09-26 Amish set `budget_usd` to $160 (DDR-002); on 2026-10-01 he described budgets as hypothetical value-engineering targets, so R16 is reported over or under the $160 target rather than as met or not met. The status column states "not met" plainly.
 
 Table 1. Requirements and status at TRL 3
 
@@ -54,7 +58,7 @@ Table 1. Requirements and status at TRL 3
 | R9 | Survive submersion of the drain head | IP68, 2 m, 72 h, stormwater with silt | Enclosure design review; later immersion test | **At risk:** electronics potted, but the transducer face keeps the module's IP67 seal |
 | R10 | Reject false readings | No alert caused by a vehicle, person or debris under the street head; target 1 false alert per gauge per year or fewer | Plausibility logic review; later field log | Not verifiable at TRL 3: rules defined, including a recorded dry-road background against the curb echo |
 | R11 | Privacy | Levels, status and battery only; no camera or microphone; no images or audio leave the device | Design review | Met by design |
-| R12 | Installation | Two-person crew, 90 min or less, from the surface; no road drilling; no entry into the catch basin | Installation sequence review | **Not met:** 120 min on the surface cable route, with no civil work (DDR-002) |
+| R12 | Installation | Two-person crew, from the surface; no road drilling; no entry into the catch basin. 120 min or less on the pilot surface cable route (relaxed on 2026-10-02, FLG-DEC-001 item 5); 90 min or less at permanent sites built on the conduit route with road works | Installation sequence review | Met on paper for the pilot route: 120 min, with no civil work (DDR-002) |
 | R13 | Level datum | Head height surveyed to the road surface at the gauge point within ±5 mm; checked yearly against the depth marker | Survey method | Met on paper: tape survey plus a recorded dry-road radar reading |
 | R14 | Operating environment | -20 to 50 °C air; UV, rain and road spray; FieldNode charges only from 0 to 45 °C | Material and cell review | **At risk:** inherits FieldNode's interior heat finding (FND R2, R3); the drain head module is rated -15 to 60 °C |
 | R15 | Mounting | Fits 40 to 60 mm poles with band clamps; total added mass on the pole 5 kg or less | Mass estimate | Met on paper: 4.99 kg (0.01 kg margin); twist factor 37 with the M8 anti-rotation through-bolt (1.45 on friction alone) |
@@ -66,15 +70,15 @@ Table 1. Requirements and status at TRL 3
 - The road surface at the gauge point is the datum for street depth. Depth equals the surveyed head height minus the measured range.
 - "Event" means water above the first alert band or rising faster than 20 mm/min.
 - FieldNode figures (usable energy, allowance, airtime per uplink, mass, cost, charge temperature window) come from FND-CAL-001 in the FieldNode repo.
-- Alert depths of 150 mm and 300 mm follow NWS guidance on water that can knock over an adult and carry away a car ([NWS](https://www.weather.gov/safety/flood-turn-around-dont-drown)). They are defaults under FLG-DDR-001 D6, to be set locally with the partner city. Under FLG-DDR-002 the alert service also supports a first band below 150 mm, whose depth is set with the partner city.
+- Alert depths of 150 mm and 300 mm follow NWS guidance on water that can knock over an adult and carry away a car ([NWS](https://www.weather.gov/safety/flood-turn-around-dont-drown)). They are defaults under FLG-DDR-001 D6, to be set locally with the partner city. Under FLG-DDR-002 the alert service also supports a first band below 150 mm; Amish set it at 100 mm on 2026-10-02 unless the partner's own practice says otherwise (FLG-DEC-001, item 6).
 - The remaining assumptions for every status above are in FLG-CAL-001, Table 1.
 
 ## Requirements not met or at risk
 
-- **R12 not met:** the surface cable route (DDR-002) removes the coring and trenching, but fitting its cover takes the installation to 120 min against 90 min. A new proposal is in `docs/REVIEW.md`, awaiting Amish.
+- **R12:** the surface cable route (DDR-002) removes the coring and trenching, but fitting its cover takes the installation to 120 min. Amish relaxed R12 to 120 min for the pilot route on 2026-10-02 (FLG-DEC-001, item 5), so it is met on paper; 90 min stays the target at permanent sites.
 - **R7 at risk:** slow spreading factors need a longer event interval; event reporting belongs on a private or city gateway (D7).
 - **R9 at risk:** the transducer face seal decides immersion survival.
 - **R14 at risk:** interior heat in FieldNode, and the drain module's -15 °C lower rating.
 - **R2** would not be met if the ultrasonic street variant were used.
-- **R15 thin margin:** 4.99 kg against 5.0 kg on estimated masses after the parts added for construction (FLG-DDR-003); weigh at TRL 4.
+- **R15 thin margin:** 4.99 kg against 5.0 kg on estimated masses after the parts added for construction (FLG-DDR-003); weigh at TRL 4. Decided 2026-10-02 (FLG-DEC-001, item 3): if the weighed mass is over 5.0 kg, the bracket plate goes to 2.5 mm.
 - **R16:** the $160 is a value-engineering target (Amish, 2026-10-01), not a limit; the constructable design is estimated at $190.50, $30.50 over it.

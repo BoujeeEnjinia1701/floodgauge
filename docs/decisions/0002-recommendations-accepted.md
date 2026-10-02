@@ -3,9 +3,9 @@ doc_id: FLG-DDR-002
 title: FloodGauge recommendations accepted
 project: FloodGauge
 doc_type: Design decision record
-version: "0.2"
+version: "0.3"
 status: Draft
-date: '2026-09-26'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -17,12 +17,16 @@ revisions:
   date: '2026-09-26'
   author: Amish Chadha
   change: Budget approved by Amish ($160)
+- version: "0.3"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "O1 and O3 decided by Amish on 2026-10-02 (FLG-DEC-001, items 5 and 6)"
 ---
 
 # 0002: Recommendations accepted
 
 - **Date:** 2026-09-25
-- **Status:** accepted. Every item below with a recommendation is "Decided by Amish, 2026-09-25: go with recommendation". Items without a recommendation stay "Proposed, awaiting Amish".
+- **Status:** accepted. Every item below with a recommendation is "Decided by Amish, 2026-09-25: go with recommendation". Items without a recommendation stayed "Proposed, awaiting Amish" at this record; O1 and O3 were decided by Amish on 2026-10-02 (FLG-DEC-001, items 6 and 5): "i approve your recommendations for all 555 open decisions."
 
 ## Context
 
@@ -66,9 +70,9 @@ All five: Decided by Amish, 2026-09-25: go with recommendation.
 
 | # | Item | Status |
 | --- | --- | --- |
-| O1 | Pilot partner and city for co-design and a first site. No preference stated and no recommendation made. The depth of the N5 band waits on this. | Proposed, awaiting Amish |
+| O1 | Pilot partner and city for co-design and a first site. No preference stated and no recommendation made. The depth of the N5 band waits on this. | Decided by Amish, 2026-10-02 (FLG-DEC-001, item 6): a city or county flood agency with street flooding at grated curb inlets and an existing gauge or alert programme; first candidate type to approach, a county flood control district such as the Harris County Flood Control District; first alert band 100 mm unless the partner's practice says otherwise. Nothing is agreed. |
 | O2 | R16 over budget after N3 and N4: $153.50 against $150 (new, raised by FLG-CAL-001 v0.2) | Decided by Amish, 2026-09-26: `budget_usd` $160 (see below) |
-| O3 | R12 installation 120 min against 90 min on the surface route (new) | Proposed, awaiting Amish (options in `docs/REVIEW.md`) |
+| O3 | R12 installation 120 min against 90 min on the surface route (new) | Decided by Amish, 2026-10-02 (FLG-DEC-001, item 5): R12 relaxed to 120 min for the pilot surface route; 90 min stays the target for permanent sites on the conduit route. |
 
 ## Consequences
 

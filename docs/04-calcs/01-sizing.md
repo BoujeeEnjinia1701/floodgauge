@@ -3,9 +3,9 @@ doc_id: FLG-CAL-001
 title: FloodGauge sizing calculations
 project: FloodGauge
 doc_type: Calculation
-version: "0.4"
+version: "0.5"
 status: Draft
-date: '2026-10-01'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -25,11 +25,15 @@ revisions:
   date: '2026-10-01'
   author: Amish Chadha
   change: Constructable design (FLG-DDR-003); arm, bracket and brace loads, mass from the model, cable runs along their real routes, cost against the value-engineering target
+- version: "0.5"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "R12 status from the 2026-10-02 decision (120 min for the pilot surface route): met on paper; counts updated. Figures not rerun; sizing.py and results.csv still state the 90 min target"
 ---
 
 # FloodGauge sizing calculations
 
-This v0.4 checks the constructable design of FLG-DDR-003 (pole bracket on V-blocks and band clamps, pinned knee brace, head plate, FieldNode at 3.4 m, three hat-section covers, stand-off pipe clamps); sections H, I, J, L and M change, the rest stand. Version 0.2 applied the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets twelve of its seventeen requirements (nine by calculation, three by design), has three at risk, cannot verify one at TRL 3 and misses one. R3 is now met on paper. R12 (a 90 min surface-only installation) is still not met: the surface route removes the civil work, but fitting its cover brings the total to 120 min. The parts added to make the design buildable take the FloodGauge-specific parts to $190.50, $30.50 over the value-engineering target of $160 (a hypothetical control target, not a limit), and the mass on the pole to 4.99 kg, 0.01 kg under R15's 5.0 kg. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
+This v0.4 checks the constructable design of FLG-DDR-003 (pole bracket on V-blocks and band clamps, pinned knee brace, head plate, FieldNode at 3.4 m, three hat-section covers, stand-off pipe clamps); sections H, I, J, L and M change, the rest stand. Version 0.2 applied the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets thirteen of its seventeen requirements (ten by calculation, three by design), has three at risk and cannot verify one at TRL 3. R3 is now met on paper. R12 was not met against 90 min: the surface route removes the civil work, but fitting its cover brings the total to 120 min; on 2026-10-02 Amish relaxed R12 to 120 min for the pilot surface route (FLG-DEC-001, item 5), so it is met on paper. The parts added to make the design buildable take the FloodGauge-specific parts to $190.50, $30.50 over the value-engineering target of $160 (a hypothetical control target, not a limit), and the mass on the pole to 4.99 kg, 0.01 kg under R15's 5.0 kg. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
 
 > **Safety:** These are first-principles estimates for a paper proof of concept. They do not show that the gauge will warn anyone in time, and they are no substitute for tests of the heads, the enclosure or the alert chain. FloodGauge supplements official warnings. See FLG-PRC-001, Safety.
 
@@ -152,7 +156,7 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 - **Surface work.** Traffic protection 10 min, the arm and bracket (assembled on the ground) lifted and clamped from a mobile platform 15 min, anti-rotation bolt 5 min, FieldNode and street head 15 min, marker 5 min, survey and dry background 10 min, grate lift 5 min, two wall anchors drilled through the grate opening 20 min, tube and head 10 min, the three covers, riser guard and marker clamps 25 min: 120 min in all [L1].
 - **Cable route (FLG-DDR-002).** For pilots the drain cable comes up through the grate opening nearest the curb (FLG-DDR-003, P7) and runs under 0.76 m of bolted steel hat-section cover across the gutter strip, up the curb face and across the sidewalk to a riser guard at the pole. The anchors go into the curb and sidewalk only, none into the road [L2]. The conduit (coring the basin wall and a 0.50 m trench) is kept for permanent sites installed with road works.
-- **R12 is still not met,** now on time alone: 120 min against 90 min, with no civil work. A new proposal is in `docs/REVIEW.md`.
+- **R12 is met on paper for the pilot route:** 120 min with no civil work, against the 120 min that Amish set for the pilot surface route on 2026-10-02 (FLG-DEC-001, item 5); 90 min stays the target at permanent sites on the conduit route.
 
 ## M. Cost (R16)
 
@@ -164,7 +168,7 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 | ID | Requirement | Value | Target | Status |
 | --- | --- | --- | --- | --- |
-| R12 | Installation | 120 min on the surface route; no civil work | 90 min, surface only, no basin entry | **Not met** |
+| R12 | Installation | 120 min on the surface route; no civil work | 120 min on the pilot surface route (90 min at permanent sites); no basin entry | Met on paper |
 | R7 | Airtime | 23.7 s/day at SF9; event 1 % met SF7 to SF10, not SF11 or SF12 | 1 % always; TTN 30 s/day in normal mode | At risk |
 | R9 | Drain head submersion | Potted head; transducer face seal IP67 only | IP68, 2 m, 72 h | At risk |
 | R14 | Operating environment | FieldNode R2 and R3 heat findings (inherited); A02YYUW rated -15 to 60 °C | -20 to 50 °C | At risk |
@@ -182,7 +186,7 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | R11 | Privacy | Levels, status and battery only | No camera or microphone | Met by design |
 | R17 | Open data | JSON or CSV through the gateway | Open format | Met by design |
 
-Counts: 1 not met, 3 at risk, 1 not verifiable at TRL 3, 8 met on paper, 3 met by design; R16 is over the value-engineering target by $30.50.
+Counts: 0 not met, 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design; R16 is over the value-engineering target by $30.50. Before the 2026-10-02 decision on R12, R12 was not met.
 
 ## Changes in v0.4 (FLG-DDR-003, design for construction)
 

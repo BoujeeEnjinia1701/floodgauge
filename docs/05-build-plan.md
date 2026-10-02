@@ -3,9 +3,9 @@ doc_id: FLG-BLD-001
 title: FloodGauge prototype build plan
 project: FloodGauge
 doc_type: Build plan
-version: "0.1"
+version: "0.2"
 status: Draft
-date: '2026-10-01'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -13,6 +13,10 @@ revisions:
     date: '2026-10-01'
     author: Amish Chadha
     change: First build plan; design made constructable (FLG-DDR-003)
+  - version: "0.2"
+    date: '2026-10-02'
+    author: Amish Chadha
+    change: "FLG-DDR-003 recorded as accepted and the R12 acceptance figure set to the 120 min pilot target, both decided by Amish on 2026-10-02 (FLG-DEC-001, items 1 and 5)"
 ---
 
 # FloodGauge prototype build plan
@@ -31,7 +35,7 @@ The prototype is one FloodGauge on a street pole beside a storm inlet. A radar h
 
 ## 2. What changed to make it buildable
 
-The concept showed what the gauge does; some of its parts passed through each other or had no fixing. Each change below keeps what the gauge does, and all of them are recorded in decision record FLG-DDR-003, open for Amish's review.
+The concept showed what the gauge does; some of its parts passed through each other or had no fixing. Each change below keeps what the gauge does, and all of them are recorded in decision record FLG-DDR-003, accepted by Amish on 2026-10-02.
 
 *Table 1. Changes from the concept.*
 
@@ -516,7 +520,7 @@ These are the checks a TRL 4 test report would record; this plan only lists them
 | Drain level on a target | R3, R4 | Lower a float plate in the tube to 3 levels with the head lifted onto a test stand | Reads within 20 mm |
 | Wet probe | R3 | Wet the probe pins | Drain-full signal |
 | Cable covers | R12 | Walk and step on the sidewalk cover; run a hand along every edge | No edge more than 2 mm proud; nothing moves |
-| Installation time | R12 | Time the site steps with a two-person crew | Recorded (120 min estimated against 90 min) |
+| Installation time | R12 | Time the site steps with a two-person crew | 120 min or less on the pilot surface route (120 min estimated) |
 
 ## 6. Safety stops
 

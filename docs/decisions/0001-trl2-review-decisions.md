@@ -3,9 +3,9 @@ doc_id: FLG-DDR-001
 title: FloodGauge TRL 2 review decisions
 project: FloodGauge
 doc_type: Design decision record
-version: "0.2"
+version: "0.3"
 status: Draft
-date: '2026-09-25'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -17,12 +17,16 @@ revisions:
   date: '2026-09-25'
   author: Amish Chadha
   change: Recommendations accepted by Amish (DDR-002)
+- version: "0.3"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "O1 decided by Amish on 2026-10-02 (FLG-DEC-001, item 6)"
 ---
 
 # 0001: TRL 2 review decisions
 
 - **Date:** 2026-09-25
-- **Status:** accepted. On 2026-09-25 Amish wrote "i accept all your recommendations, go with them across all repos", so items D1 to D9 are "Decided by Amish, 2026-09-25: go with recommendation" (recorded in FLG-DDR-002). Item O1 had no recommendation and remains "Proposed, awaiting Amish".
+- **Status:** accepted. On 2026-09-25 Amish wrote "i accept all your recommendations, go with them across all repos", so items D1 to D9 are "Decided by Amish, 2026-09-25: go with recommendation" (recorded in FLG-DDR-002). Item O1 had no recommendation at this record; it was decided by Amish on 2026-10-02 (FLG-DEC-001, item 6): "i approve your recommendations for all 555 open decisions."
 
 ## Context
 
@@ -52,7 +56,7 @@ The options for each item are those listed in `docs/REVIEW.md` (session 2026-09-
 
 | # | Item | Status |
 | --- | --- | --- |
-| O1 | Pilot partner and city for co-design and a first site (review item 8). No preference stated and no recommendation made. | Proposed, awaiting Amish |
+| O1 | Pilot partner and city for co-design and a first site (review item 8). No preference stated and no recommendation made. | Decided by Amish, 2026-10-02 (FLG-DEC-001, item 6): a city or county flood agency with street flooding at grated curb inlets and an existing gauge or alert programme; first candidate type to approach, a county flood control district such as the Harris County Flood Control District; first alert band 100 mm unless the partner's practice says otherwise. Nothing is agreed. |
 
 ## Consequences
 

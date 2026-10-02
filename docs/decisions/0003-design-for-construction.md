@@ -3,9 +3,9 @@ doc_id: FLG-DDR-003
 title: FloodGauge design for construction
 project: FloodGauge
 doc_type: Design decision record
-version: "0.1"
+version: "0.2"
 status: Draft
-date: '2026-10-01'
+date: '2026-10-02'
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -13,12 +13,16 @@ revisions:
   date: '2026-10-01'
   author: Amish Chadha
   change: Changes that make the concept physically buildable, with the reason for each; made under Amish's 2026-09-30 instruction to make the design physically buildable; open for his review
+- version: "0.2"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "Accepted by Amish on 2026-10-02 (Tables 1 to 3); record stays Draft"
 ---
 
 # 0003: Design for construction
 
 - **Date:** 2026-10-01
-- **Status:** Draft. The changes in Table 1 and Table 2 were made under Amish's 2026-09-30 instruction to make the design physically buildable; open for his review. Nothing here changes what FloodGauge does, its pitch or its safety case. The items in Table 3 are Proposed, awaiting Amish, and are carried in the design decisions register (FLG-DEC-001).
+- **Status:** Draft. The changes in Table 1 and Table 2 were made under Amish's 2026-09-30 instruction to make the design physically buildable. Nothing here changes what FloodGauge does, its pitch or its safety case. Accepted by Amish on 2026-10-02: "i approve your recommendations for all 555 open decisions." This covers every change in Tables 1 and 2 and the recommendations in Table 3 (A1 and A2), recorded in the design decisions register (FLG-DEC-001, items 1 to 4). The record stays Draft.
 
 ## Context
 
@@ -55,16 +59,16 @@ Every change is in `cad/src/model.py`, which now runs 110 constructability check
 | Documents | FLG-CAL-001 v0.4, FLG-REQ-001 v0.6, FLG-PRC-001 v0.6. R16 is now reported against the value-engineering target. No other requirement changes status. | Follows the model. |
 | Unchanged | Lens height and offset, depth error budget, drain reading range and error, tube hydraulics, energy, airtime, latency, false-reading rules, twist factor, installation time (120 min, R12 still not met). | |
 
-*Table 3. Proposed, awaiting Amish (carried in FLG-DEC-001).*
+*Table 3. Proposed, then accepted by Amish as recommended on 2026-10-02 (FLG-DEC-001, items 3 and 4).*
 
 | # | Question | Options | Recommendation |
 | --- | --- | --- | --- |
-| A1 | The R15 mass margin is now 0.01 kg on estimated masses. | (a) accept and weigh the prototype at TRL 4; (b) lighten further now, for example a 2.5 mm bracket plate. | (a). |
-| A2 | Lifting the grate for maintenance: the drain cable passes through a grate opening and the gutter cover rests on the grate border. | (a) undo the gutter cover's two anchor nuts and lift the grate with the cable still threaded, using a 0.5 m slack loop left in the basin; (b) add an inline M12 joint at the foot of the riser guard so the cable can be unplugged. | (a) for the pilot; decide after the first cleaning visit. |
+| A1 | The R15 mass margin is now 0.01 kg on estimated masses. | (a) accept and weigh the prototype at TRL 4; (b) lighten further now, for example a 2.5 mm bracket plate. | (a). Accepted 2026-10-02, with the 2.5 mm bracket plate named as the fix if the weighed prototype is over 5.0 kg. |
+| A2 | Lifting the grate for maintenance: the drain cable passes through a grate opening and the gutter cover rests on the grate border. | (a) undo the gutter cover's two anchor nuts and lift the grate with the cable still threaded, using a 0.5 m slack loop left in the basin; (b) add an inline M12 joint at the foot of the riser guard so the cable can be unplugged. | (a) for the pilot; decide after the first cleaning visit. Accepted 2026-10-02, with the slack loop tied to the stilling tube clamp so it cannot catch debris. |
 
 ## Consequences
 
 - `design_state: constructable` in `project.yaml`. The build plan FLG-BLD-001 shows every component and step in pictures generated from the model (`cad/src/build_plan_media.py`).
-- Requirement status: 1 not met (R12), 3 at risk (R7, R9, R14), 1 not verifiable at TRL 3 (R10), 8 met on paper, 3 met by design; R16 is over the value-engineering target by $30.50 (FLG-CAL-001 v0.4).
+- Requirement status: 1 not met (R12), 3 at risk (R7, R9, R14), 1 not verifiable at TRL 3 (R10), 8 met on paper, 3 met by design; R16 is over the value-engineering target by $30.50 (FLG-CAL-001 v0.4). With R12 relaxed to 120 min for the pilot surface route on 2026-10-02 (FLG-DEC-001, item 5), R12 is met on paper and none is not met (FLG-CAL-001 v0.5).
 - The photoreal renders (`media/render-*.png`), `media/card.png`, `media/social-preview.png` and the appearance model `cad/src/product_model.py` still show the concept arm, saddle, cover and node height; they need updating on Amish's Mac.
 - The FieldNode repo is not edited. FloodGauge uses its constructable design on a 60 mm pole, which needs band clamps of about 330 to 380 mm round instead of FieldNode's 230 to 280 mm.

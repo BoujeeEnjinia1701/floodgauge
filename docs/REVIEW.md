@@ -1,5 +1,49 @@
 # Review note: FloodGauge
 
+## Session 2026-10-02: open decisions decided by Amish
+
+Amish wrote on 2026-10-02: "i approve your recommendations for all 555 open decisions." Every open decision in this repo's register was decided as recommended and moved to "Decisions made" in `docs/06-design-decisions.md`, dated 2026-10-02.
+
+### Decisions recorded
+
+12 decisions recorded (register items 1 to 12). The register's "Open decisions" section now reads: "None. All open decisions were decided on 2026-10-02."
+
+### Documents changed
+
+- `docs/06-design-decisions.md` v0.2
+- `docs/decisions/0003-design-for-construction.md` v0.2
+- `docs/decisions/0001-trl2-review-decisions.md` v0.3
+- `docs/decisions/0002-recommendations-accepted.md` v0.3
+- `docs/03-requirements.md` v0.7
+- `docs/04-calcs/01-sizing.md` v0.5
+- `docs/02-concept.md` v0.7
+- `docs/01-problem.md` v0.5
+- `docs/05-build-plan.md` v0.2
+- `README.md` (pitch and DDR-003 status; not a controlled document)
+- `project.yaml` (pitch; not a controlled document)
+- `bom/bom-notes.md` (DDR-003 status and tamper-resistant fixings note; not a controlled document)
+
+PDFs re-rendered with `python3 .kit/render.py`. The CAD model, BOM quantities and prices, and pictures were not changed.
+
+### Follow-up actions to carry approved decisions into the design
+
+1. Decision 1 (build plan pictures and renders): Update `cad/src/product_model.py` to the constructable design (pole bracket, cleats, head plate, covers, node at 3.4 m) and regenerate `media/render-*.png`, `media/card.png` and `media/social-preview.png` on Amish's Mac.
+2. Decision 4 (model): Model the 0.5 m drain cable slack loop in the basin tied to the stilling tube clamp in `cad/src/model.py`, with a clearance check against the tube slots.
+3. Decision 4 (build plan pictures and renders): Add the slack loop and its tie to the stilling tube clamp to the drain kit step text and picture of FLG-BLD-001, and the grate-lifting sequence to the maintenance notes.
+4. Decision 5 (calculations): Change the R12 target in `docs/04-calcs/sizing.py` to 120 min for the pilot surface route (90 min at permanent sites) and rerun so that `results.csv` and FLG-CAL-001 match the hand-edited v0.5.
+5. Decision 7 (build plan pictures and renders): Redo the render-only pole kit layout for the node at 3.4 m and the panel at 40 degrees, and update the caption's heights.
+6. Decision 12 (BOM): Specify and price tamper-resistant screw heads and nuts for the marker bands, covers, riser guard and anchors (lines 7 and 8 and the anchors) in `bom/bom.csv`, and rerun the cost line [M1].
+7. Decision 12 (documents): Name the tamper-resistant fixings and the driver bit they need in the build plan's tools list and in the cover, riser guard and marker steps of FLG-BLD-001.
+
+### Points found in the review
+
+- Item 9 is a duplicate: the side gland and cable route are already change P5 of FLG-DDR-003, so accepting item 1 adopts it.
+- Item 7's figures (kit drawn 3.3 m lower, node centre 0.74 m) date from 2026-09-26, when the node was at 3.0 m; the node is now at 3.4 m and the panel at 40°, so the render layout and caption are stale.
+- Item 3's 0.01 kg margin is effectively zero on estimated masses; the 2.00 kg of covers and riser guard are excluded from R15 because they stand on the sidewalk, which is correct but should be stated in R15's wording.
+- The FieldNode core cost moved from USD 126.00 to USD 139.00 with its constructable design; the value-engineering comparison correctly excludes it, but docs/01-problem.md (line 66, '$126.00' and '$153.50') and the inputs table of FLG-CAL-001 (line 53, '$126.00', '2.41 kg') still carry the old figures.
+
+TRL 4 remains on hold by Amish's instruction.
+
 ## Session 2026-09-25: /populate to a strong TRL 2
 
 ### What was done
