@@ -93,6 +93,7 @@ PARAMS = {
     "wall_plate": (40.0, 5.0),
     # 6 cables
     "cable_d": 10.0,
+    "loop_a": 100.0, "loop_b": 60.0, "loop_dx": 62.0, "loop_top": -100.0,  # drain cable 0.5 m slack loop (decided 2026-10-02): half width, half height, offset west of the tube axis, top height
     # 7 surface cable cover (pilot route, DDR-002): three hat-section covers and a riser guard
     "cover_y": 80.0,               # cover centre line along the street, over the grate opening nearest the curb
     "hat": (84.0, 16.0, 2.0),      # hat section overall width, height, sheet thickness
@@ -637,6 +638,20 @@ def build_components(p=PARAMS):
              (p["cable_exit_x"], cy, zc_), (xcab, cy, zc_), (xcab, cy, zw), (px, cy, zw), (px, cy, D["riser_top"] + 60),
              (px, r + 8.0, D["riser_top"] + 110), (px, r + 8.0, zd), (D["port_x"], r + 8.0, zd), (D["port_x"], D["port_y"]["B"], zd),
              (D["port_x"], D["port_y"]["B"], D["node_bot"] - 20)]
+    # 0.5 m slack loop in the basin, west of the stilling tube under the grate opening, tied to the upper pipe clamp
+    # (decided 2026-10-02; FLG-DDR-003, A2). An ellipse 200 mm wide and 120 mm high is about 0.51 m of cable.
+    la, lb, ltop, ldx = p["loop_a"], p["loop_b"], p["loop_top"], p["loop_dx"]
+    lx = tx - ldx
+    lc = ltop - lb
+    circ = [(lx, la * math.sin(2 * math.pi * k / 24), lc + lb * math.cos(2 * math.pi * k / 24)) for k in range(25)]
+    add("slack_loop", "Drain cable slack loop (0.5 m)", cable([(tx, 0, ltop), (lx, 0, ltop)] + circ, c), 6, "bought", "cables")
+    zr_ = p["bracket_z"][0]
+    ztie = lc - lb
+    rc = p["tube_od"] / 2 + p["pclamp"][0]
+    strap = zcyl(lx, 0, (ztie + zr_) / 2, 1.5, abs(ztie - zr_)) + xcyl((lx + tx - rc) / 2, 0, zr_, 1.5, abs(lx - (tx - rc))) \
+        + (ycyl(lx, 0, ztie, c / 2 + 1.5, 5) - ycyl(lx, 0, ztie, c / 2, 6)) \
+        + (zcyl(tx, 0, zr_, rc + 3, 3) - zcyl(tx, 0, zr_, rc, 4))
+    add("loop_tie", "Slack loop cable ties (2)", strap, 10, "fixing", "cables")
     add("street_cable", "Street head cable, 3 m", cable(street, c), 6, "bought", "cables")
     add("drain_cable", "Drain head cable, 5 m", cable(drain, c), 6, "bought", "cables")
     C["_runs"] = {"street": street, "drain": drain}
@@ -837,6 +852,17 @@ def checks(p=PARAMS):
             chk(f"{nm} clear of the {C[o].name.lower()}", S(k), S(o), 1.0)
         chk(f"{nm} clear of the pole", S(k), pole, 1.0)
     chk("Street cable clear of the drain cable", S("street_cable"), S("drain_cable"), 2.0)
+    # drain cable slack loop (0.5 m) tied to the stilling tube clamp
+    chk("Slack loop clear of the stilling tube and its slots", S("slack_loop"), S("tube"), 10.0)
+    chk("Slack loop clear of the drain head", S("slack_loop"), S("drain_head"), 5.0)
+    chk("Slack loop clear of the basin wall", S("slack_loop"), basin, 10.0)
+    chk("Slack loop clear of the pipe clamps", S("slack_loop"), S("pclamps"), 10.0)
+    chk("Slack loop clear of the road slab and grate", S("slack_loop"), road + grate, 5.0)
+    joined = lambda desc, a, b_: rows.append((desc, _vol(a, b_), a.distance_to(b_), "touch", a.distance_to(b_) < 0.05))  # noqa: E731
+    joined("Slack loop joined to the drain cable", S("slack_loop"), S("drain_cable"))
+    joined("Loop tie round the slack loop", S("loop_tie"), S("slack_loop"))
+    joined("Loop tie on the upper pipe clamp", S("loop_tie"), S("pclamps"))
+    chk("Loop tie clear of the stilling tube (it lies on the clamp band)", S("loop_tie"), S("tube"), 2.5)
     chk("Drain cable clear of the road slab", S("drain_cable"), road, 1.0)
     chk("Drain cable through the grate opening", S("drain_cable"), grate, 2.0)
     chk("Drain cable inside the gutter cover", S("drain_cable"), S("gutter_cover"), 0.5)

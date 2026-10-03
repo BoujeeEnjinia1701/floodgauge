@@ -10,9 +10,9 @@ R8,"68 days nominal, 47 days at -20 C",5 days at event sampling,Met on paper
 R9,potted head; transducer face seal IP67 only,"IP68, 2 m, 72 h",At risk
 R10,rules defined; curb echo needs a recorded background,1 false alert per year or fewer,Not verifiable at TRL 3
 R11,"levels, status and battery only",no camera or microphone,Met by design
-R12,120 min on the surface route; no civil work,"90 min, surface only, no basin entry",Not met
+R12,120 min on the surface route; no civil work,"120 min for the pilot surface route, no basin entry (90 min at permanent sites on the conduit route)",Met on paper
 R13,tape and radar dry-background survey; yearly marker check,±5 mm,Met on paper
 R14,FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C,-20 to 50 C,At risk
 R15,4.99 kg; twist factor 37 with the through-bolt,40 to 60 mm poles; 5 kg,Met on paper
-R16,$190.50 FloodGauge-specific; $329.50 with FieldNode,$160 FloodGauge-specific (value-engineering target),Over the value-engineering target by $30.50
+R16,$205.50 FloodGauge-specific; $344.50 with FieldNode,$160 FloodGauge-specific (value-engineering target),Over the value-engineering target by $45.50
 R17,JSON or CSV through the gateway,open format,Met by design

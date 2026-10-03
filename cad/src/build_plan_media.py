@@ -33,7 +33,7 @@ COL = {"bplate": "#A8A29E", "vblocks": "#57534E", "bands": "#9CA3AF", "cleats": 
        "arm": "#D4A017", "brace": "#B45309", "head_plate": "#64748B", "head": "#0F766E", "lens": "#F5F5F4",
        "spacer": "#DC2626", "bolt": "#111827", "fn": "#D1D5DB", "panel": "#1E3A8A", "marker": "#F9FAFB",
        "guard": "#6B7280", "covers": "#7C3AED", "tube": "#F59E0B", "drain": "#C2410C", "pclamps": "#374151",
-       "cable": "#111827", "pole": "#9CA3AF"}
+       "cable": "#111827", "tie": "#F59E0B", "pole": "#9CA3AF"}
 
 xr, xf = D["plate_rear_x"], D["plate_front_x"]
 px, r = P["pole_x"], D["pole_r"]
@@ -352,7 +352,7 @@ def sheets(only=None):
            "File every edge smooth; paint the cut edges with zinc paint.",
            "Fit: open side against the pole, the free edges of both sides bearing",
            f"  on the pole; it stands on the sidewalk beside the pole, {P['riser_rise']:.0f} mm tall.",
-           "  The two marker band clamps go round it and hold it.",
+           "  The two marker band clamps go round it and hold it (pin-Torx security screws).",
            "Check: the free edges touch the pole along their whole length."],
           view_shape=to_origin(C["guard"].shape), inset_view=(30, -30))
 
@@ -409,7 +409,7 @@ def sheets(only=None):
                        "Drill a 9 mm hole in each tab, 18 mm up, 32 mm from the centre line.",
                        "Fit: lies across the gutter strip and 80 mm onto the grate's border,",
                        "  over the cable. The tabs go over the curb cover's flanges and",
-                       "  share its two lower anchors. Nothing is fixed to the road.",
+                       "  share its two lower anchors (security nuts). Nothing is fixed to the road.",
                        "Check: lies flat with no rocking."],
           view_shape=to_origin(C["gutter_cover"].shape), inset_view=(30, -45))
 
@@ -424,7 +424,7 @@ def sheets(only=None):
                        "Four 9 mm holes in the flanges, 32 mm from the centre line, 18 and",
                        "  139 mm up from the bottom end.",
                        "Fit: flanges flat on the curb face, standing on the road; four M8",
-                       "  masonry anchors through it and the tabs of the other two covers.",
+                       "  masonry anchors, snake-eye security nuts, through it and the tabs.",
                        "Check: the top of the raised part is 16 mm above the sidewalk."],
           view_shape=to_origin(C["curb_cover"].shape), inset_view=(25, -150))
 
@@ -440,7 +440,7 @@ def sheets(only=None):
                        "  330 mm from the curb end; a 9 mm hole in each tab, 11 mm down.",
                        "Grind a 45 degree bevel on the flange edges so it is not a trip edge.",
                        "Fit: across the sidewalk from the curb edge to 1 mm short of the",
-                       "  riser guard; four M8 masonry anchors; the tabs share the curb",
+                       "  riser guard; four M8 anchors, security nuts; tabs share the curb",
                        "  cover's upper anchors. Paint it yellow or fit hazard tape.",
                        "Check: no edge stands more than 2 mm off the sidewalk."],
           view_shape=to_origin(C["walk_cover"].shape), inset_view=(30, -45))
@@ -521,6 +521,14 @@ def joints(only=None):
        "Joint 7: the three covers at the curb, cut along the cable",
        "The cable rises through a grate opening, runs under the gutter cover, up the curb face and across the sidewalk",
        elev=18, azim=-55)
+    box_ = (tx - 95, tx + 70, -125, 125, -260, -60)
+    jn(9, [part("Stand-off pipe clamp", win(C["pclamps"].shape, *box_), COL["pclamps"]),
+           part("Stilling tube", win(C["tube"].shape, *box_), COL["tube"]),
+           part("Drain cable and 0.5 m slack loop", win(SH("slack_loop", "drain_cable"), *box_), "#DC2626"),
+           part("Cable ties (2)", win(C["loop_tie"].shape, *box_), COL["tie"])],
+       "Joint 9: slack loop tied to the upper pipe clamp",
+       "Seen from above the basin, beside the tube. One tie holds the loop, one rings the clamp; the loop hangs clear of the tube slots",
+       elev=35, azim=-60)
     zz = P["marker_bands_z"][0]
     box_ = (D["pole_face_x"] - 15, px + 45, -60, D["guard_y1"] + 10, zz - 8, zz + 4)
     jn(8, [part("Pole", win(ST["pole"], *box_), COL["pole"]),
@@ -602,7 +610,7 @@ def steps(only=None):
     st(11, base, [mv("Depth marker plate", C["marker"].shape, "#F9FAFB", (-120, 0, 0)),
                   mv("Riser guard", C["guard"].shape, COL["guard"], (0, 120, 0)),
                   mv("Band clamps (2)", C["marker_bands"].shape, COL["bands"], (0, 0, 0))],
-       "depth marker and riser guard onto the pole", f"Marker bottom {P['marker_z0']:.0f} mm above the road; guard on the sidewalk, open side on the pole; two bands round all three",
+       "depth marker and riser guard onto the pole", f"Marker bottom {P['marker_z0']:.0f} mm above the road; guard on the sidewalk, open side on the pole; two bands round all three, security screws",
        context=[walkctx], elev=20, azim=-50, label_done=False)
     basin = part("Catch basin (cut)", win(ST["basin"], -900, 60, 0, 500, -1450, -200), "#E5E7EB")
     st(12, [], [mv("Stand-off pipe clamps (2)", C["pclamps"].shape, COL["pclamps"], (-120, 0, 0)),
@@ -610,8 +618,9 @@ def steps(only=None):
        "pipe clamps and stilling tube into the basin", "From the surface with the grate off: anchor the clamp plates to the wall, lower the tube in, close the clamps",
        context=[basin], elev=15, azim=-70)
     st(13, [part("Stilling tube and clamps", SH("tube", "pclamps"), COL["bplate"])],
-       [mv("Drain head", C["drain_head"].shape, COL["drain"], (0, 0, 180))],
-       "drain head onto the tube", "Push the socket over the tube top; two stainless screws into the pilot holes",
+       [mv("Drain head", C["drain_head"].shape, COL["drain"], (0, 0, 180)),
+        mv("Slack loop and ties", SH("slack_loop", "loop_tie"), "#DC2626", (0, 0, 0))],
+       "drain head onto the tube", "Push the socket over the tube top; two stainless screws into the pilot holes. Then form the 0.5 m loop and tie it to the clamp",
        context=[basin], elev=15, azim=-70, label_done=False)
     box_ = (-260, 520, -60, 220, -260, 520)
     surf = [part("Riser guard and marker", win(SH("guard", "marker"), *box_), COL["bplate"])]
@@ -620,7 +629,7 @@ def steps(only=None):
                   mv("Gutter cover", C["gutter_cover"].shape, COL["covers"], (0, 0, 90)),
                   mv("Curb cover", C["curb_cover"].shape, "#6D28D9", (-90, 0, 0)),
                   mv("Sidewalk cover", C["walk_cover"].shape, "#8B5CF6", (0, 0, 90))],
-       "drain cable and the three covers", "Cable up through a grate opening, along the curb and sidewalk into the guard; covers on eight M8 anchors",
+       "drain cable and the three covers", "Cable up through a grate opening, along the curb and sidewalk into the guard; covers on eight M8 anchors with security nuts",
        context=ctx, elev=28, azim=-125, label_done=False)
     return out
 

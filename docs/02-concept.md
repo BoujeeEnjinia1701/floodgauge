@@ -3,7 +3,7 @@ doc_id: FLG-PRC-001
 title: FloodGauge design precis
 project: FloodGauge
 doc_type: Design precis
-version: "0.7"
+version: "0.8"
 status: Draft
 date: '2026-10-02'
 author: Amish Chadha
@@ -37,13 +37,17 @@ revisions:
   date: '2026-10-02'
   author: Amish Chadha
   change: "Decisions of 2026-10-02: alert governance with the partner city, first alert band 100 mm, R12 met on paper for the pilot route, tamper-resistant fixings, first candidate partner type"
+- version: "0.8"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "Cost USD 205.50 (USD 45.50 over the target) with tamper-resistant fixings; drain cable slack loop tied to the stilling tube clamp"
 ---
 
 # FloodGauge design precis
 
 ## Summary
 
-FloodGauge is a FieldNode core on an existing street pole next to a storm inlet, with two ranging heads: a 60 GHz radar head on a short arm over the gutter that measures water depth on the street, and an ultrasonic head in a slotted stilling tube inside the catch basin that sees the drain filling before the street floods. The node turns ranges into levels, raises its sampling rate when water rises, and sends levels only over LoRaWAN to the partner city's alert service, which decides who acts and warns crews and the residents who opt in, at default depths of 150 mm and 300 mm. FLG-CAL-001 v0.4 gives an alert latency of 82 s at the 95th percentile (110 s worst case), a sensor load under 10 mW and 4.99 kg on the pole. Value-engineering target: USD 160 (set by Amish on 2026-09-26). Estimated cost of the constructable design: USD 190.50 for FloodGauge-specific parts (USD 30.50 over the target); USD 329.50 with the USD 139.00 FieldNode core, which is costed in its own repo. One requirement is not met: installation takes 120 min against 90 min (R12). The design choices below were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002): the lens sits at 4.6 m to clear tall vehicles, pilots use a surface cable route under bolted steel covers, and an M8 through-bolt stops the arm turning. FLG-DDR-003 (2026-10-01, accepted by Amish on 2026-10-02) makes the design buildable: the arm sits in cleats on a pole bracket with V-blocks and band clamps, the brace is pinned in two clips, the FieldNode sits at 3.4 m, and the drain cable comes up through a grate opening under three hat-section covers. The build plan is FLG-BLD-001.
+FloodGauge is a FieldNode core on an existing street pole next to a storm inlet, with two ranging heads: a 60 GHz radar head on a short arm over the gutter that measures water depth on the street, and an ultrasonic head in a slotted stilling tube inside the catch basin that sees the drain filling before the street floods. The node turns ranges into levels, raises its sampling rate when water rises, and sends levels only over LoRaWAN to the partner city's alert service, which decides who acts and warns crews and the residents who opt in, at default depths of 150 mm and 300 mm. FLG-CAL-001 v0.4 gives an alert latency of 82 s at the 95th percentile (110 s worst case), a sensor load under 10 mW and 4.99 kg on the pole. Value-engineering target: USD 160 (set by Amish on 2026-09-26). Estimated cost of the constructable design: USD 205.50 for FloodGauge-specific parts (USD 45.50 over the target); USD 344.50 with the USD 139.00 FieldNode core, which is costed in its own repo. One requirement is not met: installation takes 120 min against 90 min (R12). The design choices below were decided by Amish on 2026-09-25 (FLG-DDR-001 and FLG-DDR-002): the lens sits at 4.6 m to clear tall vehicles, pilots use a surface cable route under bolted steel covers, and an M8 through-bolt stops the arm turning. FLG-DDR-003 (2026-10-01, accepted by Amish on 2026-10-02) makes the design buildable: the arm sits in cleats on a pole bracket with V-blocks and band clamps, the brace is pinned in two clips, the FieldNode sits at 3.4 m, and the drain cable comes up through a grate opening under three hat-section covers. The build plan is FLG-BLD-001.
 
 ![Hero render](../media/hero.png)
 
@@ -76,10 +80,10 @@ Table 1. Main components (numbers match the exploded view and `bom/bom.csv`)
 | 2 | Street radar head | 60 GHz pulsed coherent radar module (Acconeer XM125 class) behind a PTFE lens in a sealed IP67 housing | D3; accuracy, current and price not yet checked against a data sheet |
 | 3 | Sensor arm and pole bracket | 40 x 40 x 1.6 mm aluminium tube 715 mm in two angle cleats on a 3 mm pole bracket plate with two V-blocks and two band clamps 400 mm apart; 25 mm square knee brace at 45° pinned in two clips; head plate; M8 anti-rotation through-bolt across the street through the plate and the pole | Head 250 mm past the curb face over the gutter (D5); lens 4.6 m, per site 2.5 to 5.0 m (DDR-002) |
 | 4 | Drain head | Waterproof ultrasonic ranger (A02YYUW: 3 to 450 cm, ±1 cm, IP67) with a two-electrode wet probe and an NTC, potted in a sealed cap | Face 300 mm below the road; the transducer face keeps its IP67 seal, so R9 is at risk |
-| 5 | Stilling tube | 75 mm OD PVC, 940 mm long, 40 slots 5 x 50 mm, two stainless stand-off pipe clamps, mouth 60 mm above the basin floor; the drain head's socket slides over its top | Reachable from the surface with the grate lifted |
+| 5 | Stilling tube | 75 mm OD PVC, 940 mm long, 40 slots 5 x 50 mm, two stainless stand-off pipe clamps, mouth 60 mm above the basin floor; the drain head's socket slides over its top | Reachable from the surface with the grate lifted; the drain cable has a 0.5 m slack loop tied to the upper pipe clamp so it cannot catch debris |
 | 6 | Sensor cables | Two outdoor cables with M12 5-pin plugs to the FieldNode ports: 3 m (street, I2C) and 5 m (drain) | Drip loops at every entry |
-| 7 | Surface cable covers | Pilot route: up through the grate opening nearest the curb, under three bolted hat-section covers of 2 mm galvanized steel (gutter strip, curb face, sidewalk; 0.76 m in all) and up a riser guard strapped to the pole | Anchors in the curb and sidewalk only; permanent sites use a 25 mm conduit laid with road works (DDR-002) |
-| 8 | Depth marker plate | 2 mm aluminium plate from 165 mm above the road, amber band to 300 mm and red band 300 to 450 mm above road level, on two band clamps that also hold the riser guard | Visual check and resident information |
+| 7 | Surface cable covers | Pilot route: up through the grate opening nearest the curb, under three bolted hat-section covers of 2 mm galvanized steel (gutter strip, curb face, sidewalk; 0.76 m in all) and up a riser guard strapped to the pole | Anchors in the curb and sidewalk only, with security (snake-eye) nuts; permanent sites use a 25 mm conduit laid with road works (DDR-002) |
+| 8 | Depth marker plate | 2 mm aluminium plate from 165 mm above the road, amber band to 300 mm and red band 300 to 450 mm above road level, on two band clamps with pin-Torx security screws that also hold the riser guard | Visual check and resident information |
 | 9 | Alert service | Open software on the gateway or a small server (not modeled) | Part of the software license (MIT) |
 
 ![Exploded view](../media/exploded.png)
@@ -106,7 +110,7 @@ Table 2. Key numbers at TRL 3
 | Arm twist | Factor 37 with the M8 through-bolt; 1.45 on clamp friction alone | 35 m/s gust along the street | R15 met on paper |
 | Installation | 120 min, surface only, no civil work | Task list in FLG-CAL-001, L1 | R12 met on paper (120 min for the pilot route) |
 | Mass on the pole | 4.99 kg | FieldNode 2.45 kg plus arm, bracket, bolts, head, cables and marker (FLG-CAL-001 v0.4) | R15 met on paper (0.01 kg margin) |
-| Parts cost | $190.50 FloodGauge-specific; $329.50 with FieldNode | `bom/bom.csv` | R16: $30.50 over the $160 value-engineering target |
+| Parts cost | $205.50 FloodGauge-specific; $344.50 with FieldNode | `bom/bom.csv` | R16: value-engineering target USD 160; estimated cost of the constructable design USD 205.50 (USD 45.50 over the target) |
 
 ![Drawing](../cad/drawings/FLG-DWG-001.png)
 

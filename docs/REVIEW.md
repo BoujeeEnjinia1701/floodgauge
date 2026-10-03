@@ -44,6 +44,51 @@ PDFs re-rendered with `python3 .kit/render.py`. The CAD model, BOM quantities an
 
 TRL 4 remains on hold by Amish's instruction.
 
+## Session 2026-10-02: approved follow-ups carried out
+
+Authority: Amish, 2026-10-02, approved every follow-up action from the open-decision sign-off. `trl` and `trl_target` stay at 3; `budget_usd` is unchanged at 160. No commit or push.
+
+### Follow-ups
+
+1. Decision 1, appearance model for the constructable design: done. `cad/src/product_model.py` failed to run and still described the 2026-09-26 layout. It now takes every part it shares with the design (bracket plate on V-blocks and band clamps, cleats, arm, brace in its clips, head plate, radar housing and lens, through-bolt, node enclosure, lid, back plate, panel bracket, 40 degree panel, marker and band clamps, riser guard, three covers, anchors, tube, pipe clamps, drain head, cables, slack loop and ties) from `cad/src/model.py`, and adds only paint, accent bands, lid window, name plate, status light and the street context. The dropped detail of 2026-09-26 (cell, board and radio inside the node, lid screws, ports, plugs, ridges) was not in the model.
+2. Decision 4, slack loop in the model: done. A 0.5 m loop (about 0.51 m of cable) hangs in the basin beside the tube, tied to the upper pipe clamp with two ties. New checks: clear of the tube and its slots (79 mm), the drain head (5 mm), basin wall, pipe clamps and the road slab and grate, and joined to the cable and the tie. Constructability checks: 119 of 119 pass. STEP and STL regenerated.
+3. Decision 4, drain kit text, picture and maintenance notes: done. New Figure 22 (Joint 9, `docs/05-build-plan/joint-09.png`); step 13 picture and text now make the loop and tie it to the clamp; step 14 refers to it; new "Lifting the grate for cleaning" notes in the build plan, with the cleaning review after the first visit.
+4. Decision 5, R12 target: done. `sizing.py` rerun with R12 at 120 min for the pilot surface route (90 min at permanent sites); `results.csv` and FLG-CAL-001 agree.
+5. Decision 7, render-only pole kit layout: done. The arm kit is drawn 3.3 m lower (lens 1.3 m instead of 4.6 m) and the node and its 40 degree panel 2.9 m lower (centre 0.5 m instead of 3.4 m); the view notes state both heights.
+6. Decision 12, tamper-resistant fixings priced: done. Line 7 USD 26.00 to 32.00 (eight snake-eye security nuts at about USD 0.75), line 8 USD 10.00 to 13.00 (pin-Torx TR25 screws), line 10 USD 6.00 to 12.00 (the two bits). Prices are indicative, not quotes.
+7. Decision 12, fixings in the build plan: done. Tools list, bought parts, marker, riser guard and cover texts, steps 11 and 14 and the cover making sketches name the security nuts, screws and bits.
+
+### Requirement status changes
+
+- R12: Not met to met on paper (the 2026-10-02 decision; now also stated in `results.csv`).
+- R16: stays over the target, now by USD 45.50 (was USD 30.50). Value-engineering target: USD 160. Estimated cost of the constructable design: USD 205.50 (USD 45.50 over the target). With the USD 139.00 FieldNode core: USD 344.50.
+- R15: unchanged, 4.99 kg on the pole (the loop and ties are in the basin).
+- No other status changed.
+
+### Pictures regenerated
+
+FLG-DWG-001 Rev P5; making sketches FLG-DWG-111 (riser guard), 114 to 116 (covers) and the marker; `joint-09.png` (new); `step-11.png`, `step-13.png`, `step-14.png`; concept media (hero, cutaway, flow, exploded, blueprint, `model.glb`).
+
+### Documents changed and new versions
+
+FLG-CAL-001 v0.6; FLG-REQ-001 v0.8; FLG-PRC-001 v0.8; FLG-PRB-001 v0.6; FLG-DEC-001 v0.3; FLG-BLD-001 v0.3. Also `README.md`, `bom/bom.csv`, `bom/bom-notes.md`, `docs/04-calcs/sizing.py` and `results.csv`, `cad/src/model.py`, `sheets.py`, `build_plan_media.py`, `concept_media.py`, `product_model.py`. Points raised in the 2026-10-02 review as stale are fixed: the old USD 126.00 and 2.41 kg FieldNode figures in FLG-PRB-001 and FLG-CAL-001.
+
+### Render scenes
+
+Exported to `/home/claude/renders/floodgauge`: views hero, exploded and detail, with `floodgauge__jobs.json`. Photoreal images, `card.png` and `social-preview.png` are to be made on Amish's Mac.
+
+### Cross-repo actions
+
+- FieldNode (FND-BLD-001): none needed from this session; FloodGauge cites its USD 139.00 and 2.45 kg.
+
+### Not done
+
+None.
+
+### Decisions proposed and awaiting Amish
+
+None new. The 0.01 kg margin on R15 stands as decided (a 2.5 mm bracket plate is the named fix if the weighed mass is over 5.0 kg).
+
 ## Session 2026-09-25: /populate to a strong TRL 2
 
 ### What was done
@@ -337,3 +382,7 @@ The build plan carries safety stops for traffic, work at height, drilling the po
 ### Recommended next step
 
 Amish reviews FLG-DDR-003 and the register. TRL 4 stays on hold; nothing was built or bought.
+
+## 2026-10-02: photoreal renders redone on the constructable design
+
+Rendered with Blender Cycles on Amish's Mac from the updated appearance model; captioned with `.kit/photo_caption.py`; `media/card.png` and `media/social-preview.png` regenerated with `.kit/cards.py`. Views: hero, exploded, detail. image_qc passes. Appearance deviations are those logged above as proposed, awaiting Amish.

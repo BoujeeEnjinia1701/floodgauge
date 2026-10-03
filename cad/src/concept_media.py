@@ -61,7 +61,7 @@ if __name__ == "__main__":
                      "Drain head: ultrasonic in 75 mm stilling tube",
                      "Alert bands: 150 mm and 300 mm of water",
                      "Alert latency 82 s (95 %), 110 s worst (estimate)",
-                     "Parts $190.50 plus FieldNode $139 (indicative)"],
+                     "Parts $205.50 plus FieldNode $139 (indicative)"],
         scale_figure=False, context=[person],
         flow={"title": "data flow from water surface to alert (values are estimates)", "unit": "",
               "stages": [("Water surface", "street and drain"),

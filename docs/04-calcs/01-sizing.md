@@ -3,7 +3,7 @@ doc_id: FLG-CAL-001
 title: FloodGauge sizing calculations
 project: FloodGauge
 doc_type: Calculation
-version: "0.5"
+version: "0.6"
 status: Draft
 date: '2026-10-02'
 author: Amish Chadha
@@ -29,11 +29,15 @@ revisions:
   date: '2026-10-02'
   author: Amish Chadha
   change: "R12 status from the 2026-10-02 decision (120 min for the pilot surface route): met on paper; counts updated. Figures not rerun; sizing.py and results.csv still state the 90 min target"
+- version: "0.6"
+  date: '2026-10-02'
+  author: Amish Chadha
+  change: "Approved follow-ups: sizing.py rerun with the 120 min pilot R12 target; tamper-resistant fixings priced (cost USD 205.50, USD 45.50 over the target); drain cable slack loop modelled and checked; FieldNode inputs corrected to USD 139.00 and 2.45 kg"
 ---
 
 # FloodGauge sizing calculations
 
-This v0.4 checks the constructable design of FLG-DDR-003 (pole bracket on V-blocks and band clamps, pinned knee brace, head plate, FieldNode at 3.4 m, three hat-section covers, stand-off pipe clamps); sections H, I, J, L and M change, the rest stand. Version 0.2 applied the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets thirteen of its seventeen requirements (ten by calculation, three by design), has three at risk and cannot verify one at TRL 3. R3 is now met on paper. R12 was not met against 90 min: the surface route removes the civil work, but fitting its cover brings the total to 120 min; on 2026-10-02 Amish relaxed R12 to 120 min for the pilot surface route (FLG-DEC-001, item 5), so it is met on paper. The parts added to make the design buildable take the FloodGauge-specific parts to $190.50, $30.50 over the value-engineering target of $160 (a hypothetical control target, not a limit), and the mass on the pole to 4.99 kg, 0.01 kg under R15's 5.0 kg. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
+This v0.4 checks the constructable design of FLG-DDR-003 (pole bracket on V-blocks and band clamps, pinned knee brace, head plate, FieldNode at 3.4 m, three hat-section covers, stand-off pipe clamps); sections H, I, J, L and M change, the rest stand. Version 0.2 applied the decisions Amish accepted on 2026-09-25 (FLG-DDR-002): the lens moves to 4.6 m so that it clears a 4.3 m vehicle at the curb, R1 allows 2.5 to 5.0 m set per site, R3 is restated, the pilot cable route runs on the surface under a bolted steel cover, and an M8 through-bolt stops the arm turning. The FieldNode moves up to 3.0 m so that the street head's I2C cable stays short. On 2026-09-26 Amish approved a `budget_usd` of $160 to cover the priced BOM (FLG-DDR-002). On paper, FloodGauge now meets thirteen of its seventeen requirements (ten by calculation, three by design), has three at risk and cannot verify one at TRL 3. R3 is now met on paper. R12 was not met against 90 min: the surface route removes the civil work, but fitting its cover brings the total to 120 min; on 2026-10-02 Amish relaxed R12 to 120 min for the pilot surface route (FLG-DEC-001, item 5), so it is met on paper. The parts added to make the design buildable take the FloodGauge-specific parts to $205.50, $45.50 over the value-engineering target of $160 (a hypothetical control target, not a limit), and the mass on the pole to 4.99 kg, 0.01 kg under R15's 5.0 kg. The three at risk are airtime at slow spreading factors (R7), immersion of the drain head (R9) and the operating environment inherited from FieldNode (R14). Every number in this note is printed by `docs/04-calcs/sizing.py`; the tag in brackets, for example [F2], is the line of that script's output that carries it.
 
 > **Safety:** These are first-principles estimates for a paper proof of concept. They do not show that the gauge will warn anyone in time, and they are no substitute for tests of the heads, the enclosure or the alert chain. FloodGauge supplements official warnings. See FLG-PRC-001, Safety.
 
@@ -54,7 +58,7 @@ The design case is a street with a 150 mm curb and a catch basin 1.3 m deep besi
 | Air temperature | Speed of sound 331.3 + 0.606 T m/s; calibration at 20 °C; ±3 K between air sensor and air column over the street; ±2 K for an NTC in the drain head | Standard approximation; sensor offsets assumed |
 | Datum | Head height surveyed to ±5 mm (R13 limit); drain head face measured from the grate seat to ±3 mm; steel pole ±35 K from the survey day | R13; tape and level |
 | Surface | ±3 mm residual ripple and rain splash after averaging 5 readings | Assumed |
-| FieldNode | 15.36 Wh usable; core 4.0 mWh/day at 15 min reports; 16.0 mA s at 3.2 V per SF9 report; rails 90 %; allowance 100 mW design value, 115 mW ceiling; 2.41 kg; $126.00; autonomy at -20 °C is 0.70 of nominal | FND-CAL-001 |
+| FieldNode | 15.36 Wh usable; core 4.0 mWh/day at 15 min reports; 16.0 mA s at 3.2 V per SF9 report; rails 90 %; allowance 100 mW design value, 115 mW ceiling; 2.45 kg; $139.00; autonomy at -20 °C is 0.70 of nominal | FND-CAL-001 |
 | Controller | 5 mA at 3.3 V for 0.35 s per sampling cycle | Typical STM32WL-class figure; assumed |
 | Radio | 20-byte payload plus 13 bytes overhead, 125 kHz, CR 4/5, 8-symbol preamble; EU868 1 % duty cycle; The Things Network fair use 30 s/day | FieldNode and TwinKit notes |
 | Network | Gateway, network server and alert service 1 to 4.7 s (TwinKit worst 4.7 s); 2 to 10 s on a city or public server; 1 % uplink loss | TWK-CAL-001; assumed for public servers |
@@ -160,7 +164,7 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 ## M. Cost (R16)
 
-- The BOM has 10 lines, all priced. Value-engineering target: USD 160. Estimated cost of the constructable design: USD 190.50 for the FloodGauge-specific parts (lines 2 to 10), USD 30.50 over the target; with the USD 139.00 FieldNode core (its constructable design), a complete gauge costs USD 329.50 [M1]. The pole bracket, cleats, clips, head plate and their fixings (line 3, USD 20.00 to 35.00), the three covers and riser guard (line 7, USD 14.00 to 26.00), the stand-off pipe clamps (line 5, USD 14.00 to 18.00), the marker band clamps (line 8, USD 6.00 to 10.00) and the drain head socket (line 4, USD 22.50 to 24.50) account for the rise from USD 153.50. The main cost drivers are the radar head, the arm and bracket, the covers and the drain head [M2]. R16 is reported against the value-engineering target; savings worth trying are listed in FLG-DEC-001. Radar module, housing and cover prices are indicative.
+- The BOM has 10 lines, all priced. Value-engineering target: USD 160. Estimated cost of the constructable design: USD 205.50 for the FloodGauge-specific parts (lines 2 to 10), USD 45.50 over the target; with the USD 139.00 FieldNode core (its constructable design), a complete gauge costs USD 344.50 [M1]. The pole bracket, cleats, clips, head plate and their fixings (line 3, USD 20.00 to 35.00), the three covers and riser guard (line 7, USD 14.00 to 26.00), the stand-off pipe clamps (line 5, USD 14.00 to 18.00), the marker band clamps (line 8, USD 6.00 to 10.00) and the drain head socket (line 4, USD 22.50 to 24.50) account for the rise from USD 153.50. The main cost drivers are the radar head, the arm and bracket, the covers and the drain head [M2]. R16 is reported against the value-engineering target; savings worth trying are listed in FLG-DEC-001. Radar module, housing and cover prices are indicative.
 
 ## Results
 
@@ -181,19 +185,26 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | R8 | Energy autonomy | 68 days nominal, 47 days at -20 °C | 5 days at event sampling | Met on paper |
 | R13 | Level datum | Tape and radar dry-background survey; yearly marker check | ±5 mm | Met on paper |
 | R15 | Mounting | 4.99 kg; twist factor 37 with the through-bolt | 40 to 60 mm poles; 5 kg | Met on paper |
-| R16 | Cost | $190.50 FloodGauge-specific; $329.50 with FieldNode | $160 FloodGauge-specific (value-engineering target) | Over the value-engineering target by $30.50 |
+| R16 | Cost | $205.50 FloodGauge-specific; $344.50 with FieldNode | $160 FloodGauge-specific (value-engineering target) | Over the value-engineering target by $45.50 |
 | R5 | Sampling rate | 60 s and 10 s schedule in the sampling logic | 60 s; 10 s in events | Met by design |
 | R11 | Privacy | Levels, status and battery only | No camera or microphone | Met by design |
 | R17 | Open data | JSON or CSV through the gateway | Open format | Met by design |
 
-Counts: 0 not met, 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design; R16 is over the value-engineering target by $30.50. Before the 2026-10-02 decision on R12, R12 was not met.
+Counts: 0 not met, 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design; R16 is over the value-engineering target by $45.50. Before the 2026-10-02 decision on R12, R12 was not met.
+
+## Changes in v0.6 (approved follow-ups, 2026-10-02)
+
+- `sizing.py` rerun with R12 at 120 min for the pilot surface route (90 min stays the target at permanent sites); `results.csv` now agrees with the text.
+- Tamper-resistant fixings priced: line 7 USD 26.00 to 32.00, line 8 USD 10.00 to 13.00, line 10 USD 6.00 to 12.00. FloodGauge-specific cost USD 190.50 to 205.50, now USD 45.50 over the target.
+- Drain cable 0.5 m slack loop added to the model, tied to the upper pipe clamp, with clearance checks against the tube, its slots, the drain head, the basin wall and the clamps. The cable runs and mass on the pole are unchanged.
+- FieldNode inputs table corrected to USD 139.00 and 2.45 kg.
 
 ## Changes in v0.4 (FLG-DDR-003, design for construction)
 
 - Arm and bracket: the arm (now 715 mm, 40 x 40 x 1.6 mm) sits in cleats on a pole bracket plate on V-blocks; the brace (25 x 25 x 1.6 mm) is pinned in two clips; the through-bolt runs across the street. Misuse case: arm stress 36 to 60 MPa (factor 5.9 to 3.6), band pull 858 to 1,063 N (factor 2.3 to 1.9). Twist factor 37 unchanged.
 - Mass on the pole 4.74 to 4.99 kg, now measured on the model; R15 still met on paper with a 0.01 kg margin.
 - FieldNode centre 3.0 to 3.4 m; street cable run 2.64 m along its real route (2.94 m with loops in 3 m); drain cable 4.34 m (4.83 m in 5 m).
-- Cost USD 153.50 to 190.50 FloodGauge-specific; R16 now reported against the value-engineering target (USD 30.50 over). FieldNode core USD 126.00 to 139.00 and 2.41 to 2.45 kg (its constructable design).
+- Cost USD 153.50 to 205.50 FloodGauge-specific; R16 now reported against the value-engineering target (USD 45.50 over). FieldNode core USD 126.00 to 139.00 and 2.41 to 2.45 kg (its constructable design).
 
 ## Changes in v0.3 (budget approved)
 

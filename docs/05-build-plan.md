@@ -3,7 +3,7 @@ doc_id: FLG-BLD-001
 title: FloodGauge prototype build plan
 project: FloodGauge
 doc_type: Build plan
-version: "0.2"
+version: "0.3"
 status: Draft
 date: '2026-10-02'
 author: Amish Chadha
@@ -17,6 +17,10 @@ revisions:
     date: '2026-10-02'
     author: Amish Chadha
     change: "FLG-DDR-003 recorded as accepted and the R12 acceptance figure set to the 120 min pilot target, both decided by Amish on 2026-10-02 (FLG-DEC-001, items 1 and 5)"
+  - version: "0.3"
+    date: '2026-10-02'
+    author: Amish Chadha
+    change: "Approved follow-ups carried in: drain cable slack loop tied to the stilling tube clamp (new Figure 22 and step 13), tamper-resistant fixings named in the tools, bought parts and steps, grate lifting for cleaning, cost updated"
 ---
 
 # FloodGauge prototype build plan
@@ -29,7 +33,7 @@ revisions:
 
 *Figure 1. Every component, numbered in build order; one of each pair is shown.*
 
-The prototype is one FloodGauge on a street pole beside a storm inlet. A radar head hangs from an aluminium arm over the gutter, 4.6 m above the road; the arm is bolted to a bracket plate that clamps to the pole. A FieldNode core, built to its own plan (FND-BLD-001), sits on the pole 3.4 m up and does the sensing, power and radio. In the catch basin, a slotted plastic tube hangs on two pipe clamps with an ultrasonic drain head on top, and its cable comes up through the grate and runs under three bolted steel covers to the pole. A depth marker plate and a riser guard sit at the foot of the pole. Figure 1 shows the 21 components: 16 are made in a small workshop (aluminium plate, bar, angle and tube cut, drilled and folded; steel strip folded; PVC pipe slotted; two heads assembled from bought parts), and the rest are bought or built to the FieldNode plan. The FloodGauge-specific parts cost about $190.50 from the bill of materials.
+The prototype is one FloodGauge on a street pole beside a storm inlet. A radar head hangs from an aluminium arm over the gutter, 4.6 m above the road; the arm is bolted to a bracket plate that clamps to the pole. A FieldNode core, built to its own plan (FND-BLD-001), sits on the pole 3.4 m up and does the sensing, power and radio. In the catch basin, a slotted plastic tube hangs on two pipe clamps with an ultrasonic drain head on top, and its cable comes up through the grate and runs under three bolted steel covers to the pole. A depth marker plate and a riser guard sit at the foot of the pole. Figure 1 shows the 21 components: 16 are made in a small workshop (aluminium plate, bar, angle and tube cut, drilled and folded; steel strip folded; PVC pipe slotted; two heads assembled from bought parts), and the rest are bought or built to the FieldNode plan. The FloodGauge-specific parts cost about $205.50 from the bill of materials.
 
 > **Safety:** The installation is work beside live traffic, at height on a pole and over an open catch basin. Never enter a catch basin: it can hold toxic or oxygen-poor air and fast-rising water. The arm goes up from a mobile elevating platform with a second person, clear of overhead lines. Stormwater carries sewage and chemicals: wear gloves and eye protection. The FieldNode holds a lithium iron phosphate cell of about 19 Wh: follow the FieldNode plan's safety stops. Cut aluminium and steel edges are sharp; deburr everything. FloodGauge supplements official warnings and is never the only one.
 
@@ -47,7 +51,7 @@ The concept showed what the gauge does; some of its parts passed through each ot
 | Radar head fixing | A block that sat inside the head | A head plate under the arm; the housing hangs from it on four screws (Figure 13) | The block and the head occupied the same space |
 | Street cable | Straight up from the head through the arm | A side gland; the cable runs along the arm and down the pole (step 10) | The cable passed through the arm |
 | FieldNode | A box on a thick plate with no fixing, at 3.0 m | The FieldNode as built to its own plan, at 3.4 m (step 7) | Its fixing; and the street cable fits its 3 m length on the real route |
-| Drain cable exit | Out between the grate and its frame | Up through the grate opening nearest the curb (Figure 24) | The 5 mm gap cannot pass a 10 mm cable |
+| Drain cable exit | Out between the grate and its frame | Up through the grate opening nearest the curb (Figure 25) | The 5 mm gap cannot pass a 10 mm cable |
 | Surface cover | An angle with no fixing; a riser guard 250 mm from the pole | Three bolted hat-section covers and a riser guard strapped to the pole (Figures 17, 24) | Every piece has a fixing and the cable is covered all the way |
 | Stilling tube | Brackets set into the basin wall | Two stand-off pipe clamps (Figure 21) | Bought, adjustable, fitted from the surface |
 | Drain head | Resting on the tube | A socket under the head that slides over the tube, two screws (Figure 21) | It cannot fall off, and it lifts off for cleaning |
@@ -277,7 +281,7 @@ Long side along the arm, centred on the head axis; two M6 bolts up through the p
 
 *Figure 17. Seen from above at the lower band: one band clamp goes round the pole, across the face of the marker plate and round the riser guard.*
 
-Flat on the road face of the pole, held by two band clamps at 220 and 420 above the road that also hold the riser guard.
+Flat on the road face of the pole, held by two band clamps at 220 and 420 above the road that also hold the riser guard. Fit the clamps with their security (pin-Torx) screws, tightened with the pin-Torx bit.
 
 **Check before moving on.** The film edges are straight and level when the plate is held plumb.
 
@@ -296,7 +300,7 @@ Flat on the road face of the pole, held by two band clamps at 220 and 420 above 
 3. Cut a 20 x 20 notch at the foot of the side that will face the road, against the back.
 4. File every edge smooth and paint cut edges with zinc paint.
 
-**How it fits the parts next to it.** It stands on the sidewalk beside the pole, open side to the pole, the free edges of both sides bearing on the pole (Figure 17). The marker band clamps hold it. The cable leaves the sidewalk cover through the notch.
+**How it fits the parts next to it.** It stands on the sidewalk beside the pole, open side to the pole, the free edges of both sides bearing on the pole (Figure 17). The marker band clamps, with their security screws, hold it. The cable leaves the sidewalk cover through the notch.
 
 **Check before moving on.** The free edges touch the pole along their whole length.
 
@@ -341,13 +345,17 @@ Flat on the road face of the pole, held by two band clamps at 220 and 420 above 
 
 Pushed over the tube top and held by two stainless screws into the pilot holes. The transducer face is 300 below the road.
 
+![Figure 22. Joint 9: slack loop tied to the upper pipe clamp](05-build-plan/joint-09.png)
+
+*Figure 22. Seen from above the basin: the drain cable leaves the head, makes a 0.5 m loop beside the tube, and is tied to the loop and to the upper pipe clamp.*
+
 **Check before moving on.** The socket slides fully onto a tube offcut and the probe tips are clean.
 
 ### 3.14 Gutter cover
 
-![Figure 22. Making sketch of the gutter cover](../cad/drawings/FLG-DWG-114.png)
+![Figure 23. Making sketch of the gutter cover](../cad/drawings/FLG-DWG-114.png)
 
-*Figure 22. Gutter cover making sketch (FLG-DWG-114).*
+*Figure 23. Gutter cover making sketch (FLG-DWG-114).*
 
 **What it is and what it is made from.** The first of three steel covers over the drain cable: it lies across the gutter strip. All three are a hat section folded from 2 mm galvanized strip 84 wide: two 22 flanges, two 45° sides and a 16 wide top, 16 high overall.
 
@@ -357,15 +365,15 @@ Pushed over the tube top and held by two stainless screws into the pilot holes. 
 2. At one end cut away the top and sides for 42, leaving the flanges; fold the flanges up 90° 30 from their ends to make two tabs.
 3. Drill a 9 mm hole in each tab, 18 up, 32 from the centre line. Paint cut edges with zinc paint.
 
-**How it fits the parts next to it.** It lies over the cable across the gutter strip and 80 onto the grate's border; nothing is fixed to the road. Its tabs lie on the curb cover's flanges and share its two lower anchors (Figure 24).
+**How it fits the parts next to it.** It lies over the cable across the gutter strip and 80 onto the grate's border; nothing is fixed to the road. Its tabs lie on the curb cover's flanges and share its two lower anchors (Figure 25).
 
 **Check before moving on.** It lies flat without rocking.
 
 ### 3.15 Curb cover
 
-![Figure 23. Making sketch of the curb cover](../cad/drawings/FLG-DWG-115.png)
+![Figure 24. Making sketch of the curb cover](../cad/drawings/FLG-DWG-115.png)
 
-*Figure 23. Curb cover making sketch (FLG-DWG-115).*
+*Figure 24. Curb cover making sketch (FLG-DWG-115).*
 
 **What it is and what it is made from.** The hat-section cover up the curb face.
 
@@ -377,19 +385,19 @@ Pushed over the tube top and held by two stainless screws into the pilot holes. 
 
 **How it fits the parts next to it.**
 
-![Figure 24. Joint 7: the three covers at the curb](05-build-plan/joint-07.png)
+![Figure 25. Joint 7: the three covers at the curb](05-build-plan/joint-07.png)
 
-*Figure 24. Cut along the cable: it rises through a grate opening, runs under the gutter cover, up inside the curb cover and across under the sidewalk cover.*
+*Figure 25. Cut along the cable: it rises through a grate opening, runs under the gutter cover, up inside the curb cover and across under the sidewalk cover.*
 
-It stands on the road with its flanges flat on the curb face, held by four M8 masonry anchors; the lower two also hold the gutter cover's tabs, the upper two the sidewalk cover's tabs.
+It stands on the road with its flanges flat on the curb face, held by four M8 masonry anchors; the lower two also hold the gutter cover's tabs, the upper two the sidewalk cover's tabs. Each anchor takes a washer and a snake-eye (two-hole) security nut, tightened with the snake-eye spanner bit.
 
 **Check before moving on.** The top of the raised part is 16 above the sidewalk.
 
 ### 3.16 Sidewalk cover
 
-![Figure 25. Making sketch of the sidewalk cover](../cad/drawings/FLG-DWG-116.png)
+![Figure 26. Making sketch of the sidewalk cover](../cad/drawings/FLG-DWG-116.png)
 
-*Figure 25. Sidewalk cover making sketch (FLG-DWG-116).*
+*Figure 26. Sidewalk cover making sketch (FLG-DWG-116).*
 
 **What it is and what it is made from.** The hat-section cover across the sidewalk to the riser guard.
 
@@ -399,7 +407,7 @@ It stands on the road with its flanges flat on the curb face, held by four M8 ma
 2. Four 9 mm holes in the flanges, 32 from the centre line, 110 and 330 from the curb end; a 9 mm hole in each tab 11 down.
 3. Grind a 45° bevel on the flange edges. Paint it yellow or fit hazard tape.
 
-**How it fits the parts next to it.** It runs from the curb edge to 1 short of the riser guard, with the cable entering the guard through its notch. Four M8 masonry anchors in the sidewalk; its tabs share the curb cover's upper anchors (Figure 24).
+**How it fits the parts next to it.** It runs from the curb edge to 1 short of the riser guard, with the cable entering the guard through its notch. Four M8 masonry anchors in the sidewalk, each with a washer and a snake-eye security nut; its tabs share the curb cover's upper anchors (Figure 25).
 
 **Check before moving on.** No edge stands more than 2 off the sidewalk.
 
@@ -413,8 +421,9 @@ Buy to specification, not brand. Line numbers are those of the bill of materials
 - **Drain head parts (line 4).** A waterproof ultrasonic ranger (DFRobot A02YYUW or equal: 3 to 450 cm, IP67, UART); a 10 k temperature sensor; stainless wire for the probe pins; potting compound; a sealed cap about 104 across; a 75 mm PVC socket coupling; two stainless screws.
 - **Pipe clamps (line 5).** Two stainless stand-off pipe clamps for 75 mm pipe with an M8 rod about 45 long, a wall plate and a stainless wall anchor.
 - **Cables (line 6).** Outdoor 5-core cable about 10 mm with an M12 5-pin plug: 3 m for the street head, 5 m for the drain head.
-- **Cover hardware (line 7).** Eight M8 stainless masonry anchors with nuts and washers; UV-stable cable ties.
-- **Marker band clamps (line 8).** Two 12 mm stainless worm-drive band clamps about 450 mm round.
+- **Cover hardware (line 7).** Eight M8 stainless masonry anchors with washers and snake-eye (two-hole) security nuts in place of ordinary nuts; UV-stable cable ties.
+- **Marker band clamps (line 8).** Two 12 mm stainless worm-drive band clamps about 450 mm round, with their screws replaced by pin-Torx TR25 security screws.
+- **Security fixing bits (line 10).** One snake-eye spanner bit for the security nuts and one TR25 pin-Torx bit for the band clamp screws.
 
 ## 4. Putting it together
 
@@ -484,7 +493,7 @@ From the head's gland along the side of the arm, down beside the bracket plate, 
 
 ![Step 11](05-build-plan/step-11.png)
 
-Stand the riser guard on the sidewalk beside the pole, open side to the pole, notch toward the road. Hold the marker plate on the road face with its bottom edge 165 above the road (check with a level from the road at the gutter). Two band clamps at 220 and 420 above the road round all three.
+Stand the riser guard on the sidewalk beside the pole, open side to the pole, notch toward the road. Hold the marker plate on the road face with its bottom edge 165 above the road (check with a level from the road at the gutter). Two band clamps at 220 and 420 above the road round all three; close each clamp with its security screw and the pin-Torx bit.
 
 ### Step 12: pipe clamps and stilling tube into the basin
 
@@ -496,13 +505,23 @@ From the surface, with the grate lifted by two people with a grate hook: fit the
 
 ![Step 13](05-build-plan/step-13.png)
 
-Push the socket fully over the tube top; two stainless screws into the pilot holes.
+Push the socket fully over the tube top; two stainless screws into the pilot holes. Then take the drain cable from the head and make a 0.5 m slack loop, hanging beside the tube on the side away from the slots, below the grate opening. Tie the loop with one cable tie and tie it to the upper pipe clamp with a second, so the cable cannot swing into the tube or catch debris (Figure 22).
 
 ### Step 14: drain cable and the three covers
 
 ![Step 14](05-build-plan/step-14.png)
 
-Leave a 0.5 m slack loop in the basin. Bring the cable up through the grate opening nearest the curb on the cover line, close the grate, lay the cable across the gutter strip and up the curb face and across the sidewalk into the riser guard and up the pole to port B. Fit the curb cover on four anchors (the lower two also through the gutter cover's tabs, the upper two through the sidewalk cover's tabs) and the sidewalk cover on four more. **Hold point:** safety stop S4.
+Leave the 0.5 m slack loop from step 13 hanging in the basin, tied to the clamp. Bring the cable up through the grate opening nearest the curb on the cover line, close the grate, lay the cable across the gutter strip and up the curb face and across the sidewalk into the riser guard and up the pole to port B. Fit the curb cover on four anchors (the lower two also through the gutter cover's tabs, the upper two through the sidewalk cover's tabs) and the sidewalk cover on four more, each anchor with a washer and a snake-eye security nut. **Hold point:** safety stop S4.
+
+### Lifting the grate for cleaning
+
+After the pilot is built, the grate is lifted for cleaning in this order, with two people, a grate hook and the open inlet guarded (safety stop S3).
+
+1. Undo the two anchor nuts that hold the gutter cover's tabs, using the snake-eye spanner bit, and lift the gutter cover off the grate border.
+2. Leave the drain cable in place; it stays threaded through the grate opening, and the 0.5 m slack loop in the basin gives it the length it needs.
+3. Lift the grate with the hook and rest it clear of the opening, taking care not to pull on the cable. Nobody puts their head or body into the basin.
+4. Clean the grate and the surface by hand from above. Check from above that the loop is still tied to the pipe clamp and hangs clear of the tube.
+5. Set the grate back so it sits fully on its frame, refit the gutter cover and tighten both security nuts. This sequence is reviewed after the first cleaning visit.
 
 ## 5. First checks
 
@@ -534,7 +553,7 @@ Stop at each point. Carry on only when everything listed is true.
 
 ## 7. Tools, skills and workspace
 
-**Tools.** Hacksaw or bandsaw; bench vice with soft jaws; bench drill or drill stand; drills 3 to 10 mm and an 8.5 mm long-series drill; 46 mm hole saw; countersink; M4 tap and tap drill; jigsaw with metal blade; files; deburring tool; scriber, square, 45° square, steel rule and calipers; sheet folder (or hardwood blocks in the vice) for 2 and 3 mm sheet up to 100 wide; angle grinder with cutting disc; hammer drill and 8 mm masonry bit with an extension; torque wrench; spirit level and 5 m tape; grate hook; soldering iron, crimper and multimeter for the heads; PVC cement.
+**Tools.** Hacksaw or bandsaw; bench vice with soft jaws; bench drill or drill stand; drills 3 to 10 mm and an 8.5 mm long-series drill; 46 mm hole saw; countersink; M4 tap and tap drill; jigsaw with metal blade; files; deburring tool; scriber, square, 45° square, steel rule and calipers; sheet folder (or hardwood blocks in the vice) for 2 and 3 mm sheet up to 100 wide; angle grinder with cutting disc; hammer drill and 8 mm masonry bit with an extension; torque wrench; spirit level and 5 m tape; grate hook; a snake-eye spanner bit (for the security nuts on the cover anchors) and a TR25 pin-Torx bit (for the marker band clamp screws); soldering iron, crimper and multimeter for the heads; PVC cement.
 
 **Skills.** No certified trade for the workshop part: marking out, sawing, drilling, filing, tapping, folding sheet, light soldering and potting. Site work needs people trained for work beside traffic and on a mobile elevating platform, as local rules require.
 

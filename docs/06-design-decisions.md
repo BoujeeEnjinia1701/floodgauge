@@ -3,7 +3,7 @@ doc_id: FLG-DEC-001
 title: FloodGauge design decisions register
 project: FloodGauge
 doc_type: Design decisions register
-version: "0.2"
+version: "0.3"
 status: Draft
 date: '2026-10-02'
 author: Amish Chadha
@@ -17,6 +17,10 @@ revisions:
     date: '2026-10-02'
     author: Amish Chadha
     change: "Amish approved the recommendations for all twelve open decisions on 2026-10-02 (FLG-DDR-003 accepted); moved to decisions made"
+  - version: "0.3"
+    date: '2026-10-02'
+    author: Amish Chadha
+    change: "Value engineering restated with the priced tamper-resistant fixings (USD 205.50, USD 45.50 over the target)"
 ---
 
 # FloodGauge design decisions register
@@ -42,9 +46,9 @@ None. All open decisions were decided on 2026-10-02.
 
 ## Value engineering
 
-Value-engineering target: USD 160 (a hypothetical control target, not a limit). Estimated cost of the constructable design: USD 190.50 for the FloodGauge-specific parts (USD 30.50 over the target); USD 329.50 with the USD 139.00 FieldNode core, which is costed in its own repo.
+Value-engineering target: USD 160 (a hypothetical control target, not a limit). Estimated cost of the constructable design: USD 205.50 for the FloodGauge-specific parts (USD 45.50 over the target); USD 344.50 with the USD 139.00 FieldNode core, which is costed in its own repo.
 
-Main cost drivers: the street radar head (USD 55.00), the sensor arm and pole bracket (USD 35.00), the surface covers and riser guard (USD 26.00) and the drain head (USD 24.50).
+Main cost drivers: the street radar head (USD 55.00), the sensor arm and pole bracket (USD 35.00), the surface covers and riser guard (USD 32.00) and the drain head (USD 24.50).
 
 Savings worth trying:
 

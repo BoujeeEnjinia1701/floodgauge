@@ -1,4 +1,4 @@
-"""FloodGauge sizing calculations, FLG-CAL-001 v0.4 (TRL 3, constructable design, FLG-DDR-003).
+"""FloodGauge sizing calculations, FLG-CAL-001 v0.6 (TRL 3, constructable design, FLG-DDR-003).
 
 Run from the repo root:  python docs/04-calcs/sizing.py
 Prints every number quoted in docs/04-calcs/01-sizing.md; each line carries a tag such as [B2]
@@ -82,7 +82,7 @@ POLE_T, POLE_FU = 2.5, 360.0       # mm, MPa: pole wall and steel strength at th
 CABLE_PF = 100.0              # pF/m, outdoor multicore cable (assumed)
 CABLE_KG = 0.07               # kg/m
 
-print("FloodGauge sizing, FLG-CAL-001 v0.4")
+print("FloodGauge sizing, FLG-CAL-001 v0.6")
 print(f"Geometry from cad/src/model.py: lens {P['head_z']:.0f} mm above the road, {P['head_offset']:.0f} mm past the curb face; "
       f"tube {D['tube_len']:.0f} mm, ID {D['tube_id']:.0f} mm")
 
@@ -326,6 +326,7 @@ tasks = [("Set up pedestrian and traffic protection", 10), ("Lift the arm, assem
          ("Drill two wall anchors through the grate opening with an extension", 20), ("Fit tube and drain head, close grate", 10),
          ("Fit the three covers (eight anchors), the riser guard and the marker band clamps", 25)]
 t_no = sum(t for _, t in tasks)
+R12_PILOT_MIN = 120      # decided 2026-10-02: 120 min for the pilot surface route; 90 min stays the target for permanent sites
 tag("L1", "; ".join(f"{a} {t} min" for a, t in tasks) + f"; total {t_no} min with the surface cable route, no civil work")
 tag("L2", f"surface cover {D['cover_len'] / 1000:.2f} m (gutter strip, curb face, sidewalk); anchors in the curb and sidewalk only, none in the road; "
           f"the conduit (coring the basin wall and a {(D['riser_x'] - P['basin'][1]) / 1000:.2f} m trench) is kept for permanent sites with road works")
@@ -358,7 +359,8 @@ status = [
     ("R9", "At risk", "potted head; transducer face seal IP67 only", "IP68, 2 m, 72 h"),
     ("R10", "Not verifiable at TRL 3", "rules defined; curb echo needs a recorded background", "1 false alert per year or fewer"),
     ("R11", "Met by design", "levels, status and battery only", "no camera or microphone"),
-    ("R12", "Not met" if t_no > 90 else "Met on paper", f"{t_no} min on the surface route; no civil work", "90 min, surface only, no basin entry"),
+    ("R12", "Not met" if t_no > R12_PILOT_MIN else "Met on paper", f"{t_no} min on the surface route; no civil work",
+     f"{R12_PILOT_MIN} min for the pilot surface route, no basin entry (90 min at permanent sites on the conduit route)"),
     ("R13", "Met on paper", "tape and radar dry-background survey; yearly marker check", "±5 mm"),
     ("R14", "At risk", "FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C", "-20 to 50 C"),
     ("R15", "Met on paper" if tot <= 5.0 else "Not met", f"{tot:.2f} kg; twist factor {t_bolt / torque:.0f} with the through-bolt", "40 to 60 mm poles; 5 kg"),
