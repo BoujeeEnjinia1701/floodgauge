@@ -1,4 +1,4 @@
-"""FloodGauge general arrangement sheet FLG-DWG-001, Rev P5 (TRL 3, constructable design, FLG-DDR-003).
+"""FloodGauge general arrangement sheet FLG-DWG-001, Rev P6 (TRL 3, constructable design, FLG-DDR-003).
 
 Run from the repo root:  python cad/src/sheets.py
 Writes cad/drawings/FLG-DWG-001.svg, .pdf and .png from the parametric model in cad/src/model.py
@@ -12,11 +12,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / ".kit"), str(ROOT / "cad" / "src")]
 from drawing import Sheet, _viewbox, _t, INK, MUTED  # noqa: E402
-from model import PARAMS as P, derived, build_parts, bands, site  # noqa: E402
+from model import PARAMS as P, derived, build_parts, components, CHOSEN, site  # noqa: E402
 
 DATE = "2026-09-25"
 DATE4 = "2026-10-01"
 DATE5 = "2026-10-02"
+DATE6 = "2026-10-31"
 WORK = ROOT / "cad" / "drawings" / "_views"
 SETUPS = {"front": ((0, -1, 0), (0, 0, 1)), "top": ((0, 0, 1), (0, 1, 0)), "right": ((1, 0, 0), (0, 0, 1)),
           "iso": ((1, -1, 0.8), (0, 0, 1))}
@@ -87,20 +88,20 @@ def leader(x1, y1, x2, y2, text, anchor="start"):
 def main():
     from build123d import Box, Compound, Pos
     D = derived(P)
-    K = build_parts()
-    Bd = bands()
+    K = build_parts()                       # kit 1.9 model of the chosen option, fused by group
     S = site()
-    kit = list(K.values()) + list(Bd.values())
+    kit = [q["shape"] for q in components(CHOSEN) if q["kind"] != "context"]
     overall = Compound(children=kit + [S["pole"], S["basin"], S["grate"]])
-    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P5",
-              author="Amish Chadha", date=DATE5, scale=1 / 50, theme="technical",
+    s = Sheet(project="FloodGauge", title="General arrangement", dwg_no="FLG-DWG-001", rev="P6",
+              author="Amish Chadha", date=DATE6, scale=1 / 50, theme="technical",
               material="Aluminium arm, PVC tube, bought-in heads per bom/bom.csv; existing street shown for context. "
                        "PRELIMINARY, NOT FOR FABRICATION",
               revisions=[("P1", "Preliminary GA for TRL 3 (from cad/src/model.py)", DATE, "AC"),
                          ("P2", "DDR-002: lens 4.6 m, node 3.0 m, surface cable cover, anti-rotation bolt", DATE, "AC"),
                          ("P3", "Layout and labels tidied", DATE, "AC"),
                          ("P4", "DDR-003: constructable design; node at 3.4 m", DATE4, "AC"),
-                         ("P5", "Drain cable slack loop tied to tube clamp", DATE5, "AC")])
+                         ("P5", "Drain cable slack loop tied to tube clamp", DATE5, "AC"),
+                         ("P6", "Redrawn from the kit 1.9 model (components(CHOSEN), 171 parts with every fastener)", DATE6, "AC")])
     L = []
     L.append(_t(16, 24, "PRELIMINARY, NOT FOR FABRICATION", 2.6, 600, "#B45309"))
 

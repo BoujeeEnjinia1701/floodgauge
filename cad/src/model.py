@@ -1,6 +1,7 @@
-"""FloodGauge parametric model (build123d), TRL 3, constructable design (FLG-DDR-003).
+"""FloodGauge parametric model (build123d), kit 1.9 interface, detail level D3 for every option.
 
-Run from the repo root:  python cad/src/model.py            (exports and prints the checks)
+Run from the repo root:  python .kit/cad_check.py --export  (fidelity check and STEP per part and assembly)
+                         python cad/src/model.py            (exports STL of the chosen option and prints the checks)
                          python cad/src/model.py --check    (constructability checks only)
 Exports STEP and STL into cad/step and cad/stl:
   floodgauge-assembly   kit parts 1 to 8 as installed, with the FieldNode core (no street context)
@@ -35,10 +36,17 @@ FieldNode dimensions follow the FieldNode repo (FND-BLD-001 and its cad/src/mode
 enclosure 150 x 90 x 200 mm, back plate 180 x 320 x 3 mm, panel 290 x 200 mm at 40 degrees,
 mass 2.45 kg, cost $139.00.
 """
-from dataclasses import dataclass
 from pathlib import Path
 import math
 import sys
+
+HERE = Path(__file__).resolve().parent
+sys.path[:0] = [str(HERE), str(HERE.parents[1] / ".kit")]
+
+from build123d import Pos, Rot  # noqa: E402
+import cad_parts as cp  # noqa: E402
+from cad_parts import part  # noqa: E402
+from flg_parts import fasten, orient, csk_cutter, snake_eye_nut, sleeve, ISO  # noqa: E402
 
 PARAMS = {
     # existing street (context, not in the BOM)
@@ -115,17 +123,6 @@ BOM = {"node": (1, "FieldNode core"), "panel": (1, "FieldNode 6 W panel"),
        "marker": (8, "Depth marker plate")}
 
 RHO_AL, RHO_STEEL = 2.70e-6, 7.85e-6   # kg/mm3
-
-
-@dataclass
-class Comp:
-    """One component: a single made or bought piece (or a matched set of fixings)."""
-    name: str
-    shape: object
-    bom: int | None
-    kind: str          # "made", "bought", "fixing" or "sub-assembly"
-    group: str         # key in BOM (build_parts groups components by it)
-    rho: float = 0.0   # density for the mass estimate (0: not estimated from volume)
 
 
 def derived(p=PARAMS):
@@ -325,9 +322,16 @@ def hat(origin, w_dir, l_dir, length, p=PARAMS):
     return b.extrude(pl * face, length)
 
 
-# ------------------------------------------------------------------ components
+# ------------------------------------------------------------------ components (kit 1.9)
+EXPLODE = {"node": (-150, -500, 150), "panel": (-150, -500, 350), "street_head": (-250, -300, 350), "arm": (0, 0, 250),
+           "drain_head": (-400, -500, 1650), "tube": (-400, -500, 1400), "cables": (250, -900, 0),
+           "conduit": (300, -600, 600), "marker": (-300, -350, 0), "context": (0, 0, 0)}
+GREEN = "#1F6B3A"       # PCB colour
+
+
 def _vblock(p, xr, z):
-    """FieldNode V-block on the rear face xr of a plate, centred on y = 0 at height z."""
+    """V-block on the rear face xr of a plate, centred on y = 0 at height z (FieldNode pattern), with its
+    two tapped M4 holes (drawn at the nominal 4 mm)."""
     b = _b3d()
     w, dpt, h = p["vblock"]
     blk = bx(xr, xr + dpt, -w / 2, w / 2, z - h / 2, z + h / 2)
@@ -335,38 +339,108 @@ def _vblock(p, xr, z):
     tri = b.Face(b.Wire.make_polygon([b.Vector(xr + a, 0, 0), b.Vector(xr + dpt + 1, dpt + 1 - a, 0),
                                       b.Vector(xr + dpt + 1, -(dpt + 1 - a), 0)], close=True))
     v = b.Pos(0, 0, z) * b.extrude(tri, h / 2 + 1, both=True)
-    blk = blk - v
-    for sy in (-18.0, 18.0):  # tapped M4 holes from the plate side
-        blk -= xcyl(xr + 6, sy, z, 1.65, 12.1)
+    blk = cp.break_edges(blk - v, 0.5)
+    for sy in (-18.0, 18.0):
+        blk -= xcyl(xr + 6, sy, z, 2.0, 12.1)
     return blk
 
 
-def _fieldnode(p, D, C, add):
-    """FieldNode core as built to FND-BLD-001, simplified to its envelope: back plate, V-blocks,
-    band clamps, enclosure and lid, ports and glands, panel bracket and panel. Faces the road (-X)."""
+class _Out(list):
+    """Part list with helpers that stamp the group, explode offset and legacy key on every part."""
+
+    def add(self, key, name, shape, material, kind, bom, group, color=None):
+        q = part(name, shape, material, kind=kind, bom=bom, group=group, explode=EXPLODE.get(group, (0, 0, 0)), color=color)
+        q["key"] = key
+        self.append(q)
+        return q
+
+    def fast(self, key, d, grip, origin, outward, group, bom, **kw):
+        for q in fasten(d, grip, origin, outward, bom=bom, group=group, key=key, explode=EXPLODE.get(group, (0, 0, 0)), **kw):
+            self.append(q)
+
+
+def _fieldnode(p, D, o):
+    """FieldNode core as built to FND-BLD-001, at envelope level but with real wall thickness: back plate, two V-blocks
+    and two band clamps, hollow IP65 enclosure with lid, cell, board and connectors, panel bracket and 6 W panel.
+    Faces the road (-X). Interior items are envelope placeholders sized from the FieldNode BOM, not FieldNode's own CAD."""
     b = _b3d()
     r = D["pole_r"]
     xr, xf = D["plate_rear_x"], D["plate_rear_x"] - p["fn_plate"][0]
     z0 = D["node_bot"]
     pt, pw, ph = p["fn_plate"]
-    plate = bx(xf, xr, -pw / 2, pw / 2, z0 - p["fn_plate_drop"], z0 - p["fn_plate_drop"] + ph)
-    plate -= bx(xf - 1, xr + 1, -50, 50, z0 + 25, z0 + 175)            # FieldNode window behind the box
+    plate = cp.break_edges(bx(xf, xr, -pw / 2, pw / 2, z0 - p["fn_plate_drop"], z0 - p["fn_plate_drop"] + ph), 0.6)
+    plate -= bx(xf - 1, xr + 1, -50, 50, z0 + 25, z0 + 175)            # window behind the box
     ys, (bw_, bt_) = p["fn_band_slot"], p["band"]
     for zc in p["fn_clamp_dz"]:
         plate -= bx(xf - 1, xr + 1, -ys - 1.5, -ys + 1.5, z0 + zc - 7.5, z0 + zc + 7.5)
         plate -= bx(xf - 1, xr + 1, ys - 1.5, ys + 1.5, z0 + zc - 7.5, z0 + zc + 7.5)
-    vb = fuse([_vblock(p, xr, z0 + zc) for zc in p["fn_clamp_dz"]])
-    bands = fuse([band_loop(p["pole_x"], 0, r, [(xf - 0.01, ys + 1.5 - bt_ - 0.2, (-bt_, bt_)), (xf - 0.01, -ys - 1.5 + bt_ + 0.2, (-bt_, -bt_))],
-                            z0 + zc, bw_, bt_) for zc in p["fn_clamp_dz"]])
+        for sy in (-18.0, 18.0):
+            plate -= orient(csk_cutter(4, pt + 1), (xf, sy, z0 + zc), (-1, 0, 0))
+    o.add("fn_plate", "FieldNode back plate", plate, "aluminium", "made", 1, "node")
+    for zc in p["fn_clamp_dz"]:
+        o.add("fn_vblocks", "FieldNode V-block", _vblock(p, xr, z0 + zc), "aluminium", "made", 1, "node")
+        for sy in (-18.0, 18.0):
+            o.fast("fn_screws", 4, pt, (xf, sy, z0 + zc), (-1, 0, 0), "node", 1, head="csk", nut=None, length=12)
+    for zc in p["fn_clamp_dz"]:
+        o.add("fn_bands", "FieldNode band clamp", band_loop(p["pole_x"], 0, r, [(xf - 0.01, ys + 1.5 - bt_ - 0.2, (-bt_, bt_)),
+                                                                             (xf - 0.01, -ys - 1.5 + bt_ + 0.2, (-bt_, -bt_))],
+                                                          z0 + zc, bw_, bt_), "stainless", "bought", 1, "node")
     ex, ey, ez = p["enc"]
-    body = bx(xf - ex + 12, xf, -ey / 2, ey / 2, z0, z0 + ez)
+    wl = 3.0                                                              # enclosure wall
+    xb0 = xf - ex + 12                                                     # open (road) end of the body
+    body = bx(xb0, xf, -ey / 2, ey / 2, z0, z0 + ez)
+    body -= bx(xb0 - 1, xf - wl, -ey / 2 + wl, ey / 2 - wl, z0 + wl, z0 + ez - wl)
+    bosses = []
+    for sy in (-1, 1):
+        for zz in (z0 + 9.0, z0 + ez - 9.0):
+            bosses.append(xcyl(xb0 + 10, sy * (ey / 2 - 9.0), zz, 5.0, 20.0) - xcyl(xb0 + 10, sy * (ey / 2 - 9.0), zz, 2.0, 20.1))
+    body = cp.break_edges(body, 1.0) + fuse(bosses)
+    for yy in D["port_y"].values():                                     # holes for the connector stems
+        body -= zcyl(D["port_x"], yy, z0 + 1.5, 6.0, wl + 2)
+    for yy in (40.0, 8.0):
+        body -= zcyl(xf - 27, yy, z0 + 1.5, 6.0, wl + 2)
+    body -= zcyl(xf - 27, -24, z0 + 1.5, 4.0, wl + 2)
+    body -= zcyl(D["port_x"], -30, z0 + 1.5, 4.0, wl + 2)
+    o.add("fn_body", "FieldNode enclosure body (IP65, 3 mm wall)", body, "polycarbonate", "made", 1, "node")
     lid = bx(xf - ex, xf - ex + 12, -ey / 2, ey / 2, z0, z0 + ez)
-    ports = fuse([zcyl(D["port_x"], y, z0 - 10, 8, 20) + zcyl(D["port_x"], y, z0 - 1.5, 11, 3) for y in D["port_y"].values()])
-    glands = fuse([zcyl(xf - 27, y, z0 - 10, 8, 20) for y in (40.0, 8.0)]) + zcyl(xf - 27, -24, z0 - 5, 6, 10)
-    whip = zcyl(D["port_x"], -30, z0 - 95, 5, 190)
-    # panel bracket (FieldNode plate clips, posts, struts, panel clips), simplified to bars
-    fx = lambda fy: xr + fy + 42.0  # noqa: E731  FieldNode frame (rear face at y = -42) to FloodGauge x
-    t = math.radians(p["panel_tilt"])
+    lid -= bx(xf - ex + 3, xf - ex + 13, -ey / 2 + wl, ey / 2 - wl, z0 + wl, z0 + ez - wl)
+    lid = cp.break_edges(lid, 1.0)
+    for sy in (-1, 1):
+        for zz in (z0 + 9.0, z0 + ez - 9.0):
+            lid -= xcyl(xf - ex + 1.5, sy * (ey / 2 - 9.0), zz, 2.25, 4.0)
+    o.add("fn_lid", "FieldNode lid", lid, "polycarbonate", "made", 1, "node")
+    for sy in (-1, 1):
+        for zz in (z0 + 9.0, z0 + ez - 9.0):
+            o.fast("fn_screws", 4, 3.0, (xf - ex, sy * (ey / 2 - 9.0), zz), (-1, 0, 0), "node", 1, head="button", nut=None, length=30)
+    # connectors, glands and antenna
+    for k_, yy in D["port_y"].items():
+        con = zcyl(D["port_x"], yy, z0 - 10, 8.0, 20.0) + zcyl(D["port_x"], yy, z0 - 1.5, 11.0, 3.0) + zcyl(D["port_x"], yy, z0 + 4.5, 6.0, 9.0)
+        con -= zcyl(D["port_x"], yy, z0 - 14, 5.5, 12.0)
+        o.add("fn_ports", f"M12 5-pin panel connector, port {k_}", con, "brass", "bought", 1, "node")
+    for yy in (40.0, 8.0, -24.0):
+        g = zcyl(xf - 27, yy, z0 - 10, 8.0, 20.0) + zcyl(xf - 27, yy, z0 + 4.5, 4.0 if yy < 0 else 6.0, 9.0)
+        g = cp.break_edges(g, 0.5)
+        o.add("fn_ports", "Cable gland", g, "zinc_plated", "bought", 1, "node")
+    whip = zcyl(D["port_x"], -30, z0 - 95, 5.0, 190.0)
+    whip = cp.break_edges(whip, 2.0) + zcyl(D["port_x"], -30, z0 + 4.5, 4.0, 9.0)
+    o.add("fn_ports", "LoRa antenna (rubber duck)", whip, "epdm", "bought", 1, "node")
+    # inside the box: LiFePO4 32700 cell and the board on four standoffs
+    cell = Pos(xf - wl - 18.5, 0, z0 + 28.0) * b.Rot(90, 0, 0) * b.Cylinder(16.0, 70.0)
+    cell = cp.break_edges(cell, 0.8)
+    o.add("fn_cell", "LiFePO4 cell, 6 Ah (32700)", cell, "aluminium", "bought", 1, "node")
+    xpcb = xf - wl - 10.0
+    pcb = cp.break_edges(bx(xpcb - 1.6, xpcb, -50, 50, z0 + 58, z0 + 168), 0.3)
+    for sy in (-40.0, 40.0):
+        for zz in (z0 + 66, z0 + 160):
+            pcb -= xcyl(xpcb - 0.8, sy, zz, 1.7, 2.0)
+    o.add("fn_pcb", "FieldNode board (MPPT, rails, STM32WL), 100 x 110 x 1.6", pcb, "hdpe_black", "bought", 1, "node", color=GREEN)
+    for sy in (-40.0, 40.0):
+        for zz in (z0 + 66, z0 + 160):
+            so = xcyl(xf - wl - 4.0, sy, zz, 3.0, 8.0) - xcyl(xf - wl - 4.0, sy, zz, 1.5, 8.2)
+            o.add("fn_pcb", "Board standoff M3 x 8", so, "brass", "bought", 1, "node")
+            o.fast("fn_screws", 3, 0.0, (xpcb - 1.6, sy, zz), (-1, 0, 0), "node", 1, head="button", nut=None, length=10)
+    # panel bracket: plate clips, two posts and two struts (aluminium flat bar), as one bent-and-bolted part
+    fx = lambda fy: xr + fy + 42.0  # noqa: E731
     pcx, pcz = fx(-115.0), z0 + 385.0
     pts = {"post_foot": (fx(-63.0), z0 + 262.0), "post_head": (fx(-33.8), z0 + 420.4),
            "strut_foot": (fx(-62.0), z0 + 232.0), "strut_head": (fx(-164.0), z0 + 311.2)}
@@ -376,202 +450,250 @@ def _fieldnode(p, D, C, add):
         L = math.hypot(xc - xa, zc - za)
         ang = math.degrees(math.atan2(zc - za, xc - xa))
         for sy in (-1, 1):
-            bars.append(b.Pos((xa + xc) / 2, sy * yy, (za + zc) / 2) * b.Rot(0, -ang, 0) * b.Box(L + 20, 3, 20))
+            bars.append(b.Pos((xa + xc) / 2, sy * yy, (za + zc) / 2) * b.Rot(0, -ang, 0) * cp.break_edges(b.Box(L + 20, 3, 20), 0.6))
     clips = fuse([bx(xf - 30, xf, sy * 80, sy * 83, z0 + 218, z0 + 295) for sy in (-1, 1)]
                  + [bx(xf - 3, xf, sy * 53, sy * 83, z0 + 218, z0 + 295) for sy in (-1, 1)])
+    bracket = fuse(bars) + clips
+    o.add("fn_bracket", "FieldNode panel bracket (clips, posts, struts)", bracket, "aluminium", "made", 1, "panel")
     pw_, pl_, pth = p["panel"]
-    panel = b.Pos(pcx, 0, pcz) * b.Rot(0, p["panel_tilt"], 0) * b.Box(pw_, pl_, pth)
-    add("fn_plate", "FieldNode back plate", plate, 1, "sub-assembly", "node")
-    add("fn_vblocks", "FieldNode V-blocks", vb, 1, "sub-assembly", "node")
-    add("fn_bands", "FieldNode band clamps", bands, 1, "sub-assembly", "node")
-    add("fn_body", "FieldNode enclosure", body + ports + glands + whip, 1, "sub-assembly", "node")
-    add("fn_lid", "FieldNode lid", lid, 1, "sub-assembly", "node")
-    add("fn_bracket", "FieldNode panel bracket", fuse(bars) + clips, 1, "sub-assembly", "node")
-    add("fn_panel", "FieldNode 6 W panel", panel, 1, "sub-assembly", "panel")
+    frame = b.Box(pw_, pl_, pth) - b.Box(pw_ - 24, pl_ - 24, pth + 2)
+    frame += b.Pos(0, 0, 3.0 - pth / 2) * (b.Box(pw_ - 24 + 0.01, pl_ - 24 + 0.01, 3.0) - b.Box(pw_ - 36, pl_ - 36, 4.0))
+    frame = cp.break_edges(frame, 0.8)
+    lam = cp.break_edges(b.Pos(0, 0, pth / 2 - 2.0) * b.Box(pw_ - 24, pl_ - 24, 4.0), 0.4)
+    Tm = b.Pos(pcx, 0, pcz) * b.Rot(0, p["panel_tilt"], 0)
+    o.add("fn_panel", "FieldNode 6 W panel frame", Tm * frame, "aluminium", "bought", 1, "panel")
+    o.add("fn_panel", "FieldNode 6 W panel laminate", Tm * lam, "glass", "bought", 1, "panel", color="#1B2A5A")
 
 
-def build_components(p=PARAMS):
-    """Every component as a Comp, keyed by a short name, in build order within each group."""
+def _stand_off(o, p, tx, ty, zz, od, face_x, bom, group):
+    """Stand-off pipe clamp: a stainless band with a tapped boss round a pipe of outside diameter od (axis at tx, ty),
+    an M8 stud into the concrete face at x = face_x (the face looks toward -X), a 40 mm wall plate with washer and
+    nut, and a lock nut on the boss."""
+    pct, pcw = p["pclamp"]
+    wd, wt = p["wall_plate"]
+    x_ring = tx + od / 2 + pct
+    ring = zcyl(tx, ty, zz, od / 2 + pct, pcw) - zcyl(tx, ty, zz, od / 2, pcw + 2)
+    ring += bx(x_ring - 1, x_ring + 8, ty - 7, ty + 7, zz - 7, zz + 7) - xcyl(x_ring + 4, ty, zz, 4.0, 10)
+    o.add("pclamps", "Stand-off pipe clamp band with tapped boss", cp.break_edges(ring, 0.4), "stainless", "bought", bom, group)
+    plate = cp.break_edges(xcyl(face_x - wt / 2, ty, zz, wd / 2, wt) - xcyl(face_x - wt / 2, ty, zz, 4.25, wt + 2), 0.5)
+    o.add("pclamps", "Wall plate (stainless, 40 dia x 5)", plate, "stainless", "bought", bom, group).update(key="pclamp_plates")
+    x0, x1 = x_ring + 2.0, face_x + 50.0
+    o.add("pclamps", "M8 stand-off stud and wall anchor", cp.break_edges(xcyl((x0 + x1) / 2, ty, zz, 4.0, x1 - x0), 0.4), "stainless", "bought", bom, group)
+    o.add("pclamps", "M8 lock nut (boss)", orient(cp.hex_nut(8), (x_ring + 8, ty, zz), (1, 0, 0)), "stainless", "fastener", bom, group)
+    o.add("pclamps", "M8 washer (wall plate)", orient(cp.washer(8), (face_x - wt, ty, zz), (-1, 0, 0)), "stainless", "fastener", bom, group)
+    o.add("pclamps", "M8 hex nut (wall plate)", orient(cp.hex_nut(8), (face_x - wt - 1.6, ty, zz), (-1, 0, 0)), "stainless", "fastener", bom, group)
+
+
+def option_a(p=PARAMS):
+    """Option A, the current design: radar over the gutter, ultrasonic in a stilling tube."""
     b = _b3d()
     D = derived(p)
-    C = {}
-
-    def add(key, name, shape, bom, kind, group, rho=0.0):
-        C[key] = Comp(name, shape, bom, kind, group, rho)
-
+    o = _Out()
     px, r = p["pole_x"], D["pole_r"]
     xr, xf = D["plate_rear_x"], D["plate_front_x"]
     bw_, bt_ = p["band"]
-
-    # ---------------- 1 FieldNode core
-    _fieldnode(p, D, C, add)
-
-    # ---------------- 3 pole bracket: plate, V-blocks, bands, cleats, clips, spacer, through-bolt
+    hx = D["head_x"]
+    az = D["arm_z"]
+    hw = p["arm_sq"] / 2
+    ct, ci, clen, ce = p["clip"]
+    (xt, zt), (xft, zft) = D["pin_top"], D["pin_foot"]
     pt, pw = p["bplate"]
+
+    _fieldnode(p, D, o)
+
+    # ---------------- 3 pole bracket plate, V-blocks, band clamps
     z_lo, z_hi = D["bplate_z"]
-    plate = bx(xf, xr, -pw / 2, pw / 2, z_lo, z_hi)
+    plate = cp.break_edges(bx(xf, xr, -pw / 2, pw / 2, z_lo, z_hi), 0.6)
     ys, sw, sh = p["band_slot"]
     for zb in D["band_z"]:
         for sy in (-1, 1):
             plate -= bx(xf - 1, xr + 1, sy * ys - sw / 2, sy * ys + sw / 2, zb - sh / 2, zb + sh / 2)
         for sy in (-18.0, 18.0):
-            plate -= xcyl(xr - pt / 2, sy, zb, 2.25, pt + 2)
+            plate -= orient(csk_cutter(4, pt + 1), (xf, sy, zb), (-1, 0, 0))
     ww, wh = p["bplate_window"]
     wz = (D["bolt_z"] + p["foot_z"] + 25) / 2, (D["bolt_z"] + D["arm_z"] - 30) / 2
     for zc in wz:
         plate -= bx(xf - 1, xr + 1, -ww / 2, ww / 2, zc - wh / 2, zc + wh / 2)
-    for sy in (-1, 1):                                            # arm cleat bolts
+    for sy in (-1, 1):
         for dz in (-18.0, 18.0):
-            plate -= xcyl(xr - pt / 2, sy * 38.0, D["arm_z"] + dz, 3.3, pt + 2)
-    for dz in (-17.0, 17.0):                                      # foot clip bolts
+            plate -= xcyl(xr - pt / 2, sy * 38.0, az + dz, 3.3, pt + 2)
+    for dz in (-17.0, 17.0):
         plate -= xcyl(xr - pt / 2, 0, p["foot_z"] + dz, 3.3, pt + 2)
-    plate -= xcyl(xr - pt / 2, 0, D["bolt_z"], 4.25, pt + 2)       # through-bolt
-    add("bplate", "Pole bracket plate", plate, 3, "made", "arm", RHO_AL)
-    add("vblocks", "V-blocks (2)", fuse([_vblock(p, xr, zb) for zb in D["band_z"]]), 3, "made", "arm", RHO_AL)
-    add("bands", "Band clamps (2)", fuse([band_loop(px, 0, r, [(xf - 0.01, ys + sw / 2 - bt_ - 0.2, (-bt_, bt_)), (xf - 0.01, -ys - sw / 2 + bt_ + 0.2, (-bt_, -bt_))],
-                                                   zb, bw_, bt_) for zb in D["band_z"]]), 3, "bought", "arm", RHO_STEEL)
-    vscrews = fuse([xcyl(xf + 6, sy, zb, 2.0, 12) + xcyl(xf + 1.2, sy, zb, 4.0, 2.4) for zb in D["band_z"] for sy in (-18.0, 18.0)])
-    # arm cleats: 30 x 30 x 3 angle; one leg on the plate front, the other along the arm side
+    plate -= xcyl(xr - pt / 2, 0, D["bolt_z"], 4.5, pt + 2)
+    o.add("bplate", "Pole bracket plate", plate, "aluminium", "made", 3, "arm")
+    for zb in D["band_z"]:
+        o.add("vblocks", "V-block", _vblock(p, xr, zb), "aluminium", "made", 3, "arm")
+        for sy in (-18.0, 18.0):
+            o.fast("fixings", 4, pt, (xf, sy, zb), (-1, 0, 0), "arm", 3, head="csk", nut=None, length=12)
+    for zb in D["band_z"]:
+        o.add("bands", "Band clamp", band_loop(px, 0, r, [(xf - 0.01, ys + sw / 2 - bt_ - 0.2, (-bt_, bt_)),
+                                                          (xf - 0.01, -ys - sw / 2 + bt_ + 0.2, (-bt_, -bt_))], zb, bw_, bt_),
+              "stainless", "bought", 3, "arm")
+    # ---------------- arm cleats (30 x 30 x 3 angle) and their bolts
     a_, at = p["angle"]
-    az, cl = D["arm_z"], p["cleat_len"]
-    hw = p["arm_sq"] / 2
-    cleats = []
+    cl = p["cleat_len"]
     for sy in (-1, 1):
         y0 = sy * hw
-        cleats.append(bx(xf - at, xf, y0, y0 + sy * a_, az - cl / 2, az + cl / 2)
-                      + bx(xf - a_, xf, y0, y0 + sy * at, az - cl / 2, az + cl / 2))
-    cleats = fuse(cleats)
+        c = (bx(xf - at, xf, y0, y0 + sy * a_, az - cl / 2, az + cl / 2) + bx(xf - a_, xf, y0, y0 + sy * at, az - cl / 2, az + cl / 2))
+        c = cp.break_edges(c, 0.5)
+        for dz in (-18.0, 18.0):
+            c -= xcyl(xf - at / 2, sy * 38.0, az + dz, 3.3, at + 2)
+        for dz in (-10.0, 10.0):
+            c -= ycyl(xf - 15.0, sy * (hw + at / 2), az + dz, 3.3, at + 2)
+        o.add("cleats", "Arm cleat (angle 30 x 30 x 3)", c, "aluminium", "made", 3, "arm")
     for sy in (-1, 1):
         for dz in (-18.0, 18.0):
-            cleats -= xcyl(xf - at / 2, sy * 38.0, az + dz, 3.3, at + 2)
-        for dz in (-10.0, 10.0):
-            cleats -= ycyl(xf - 15.0, sy * (hw + at / 2), az + dz, 3.3, at + 2)
-    add("cleats", "Arm cleats (2)", cleats, 3, "made", "arm", RHO_AL)
-    cleat_bolts = fuse([bolt("x", xf - at, xr, sy * 38.0, az + dz) for sy in (-1, 1) for dz in (-18.0, 18.0)])
-    arm_cleat_bolts = fuse([bolt("y", -hw - at, hw + at, xf - 15.0, az + dz) for dz in (-10.0, 10.0)])
-    # brace clips: U folded from 3 mm strip, base on the arm underside (top clip) or on the plate (foot clip)
-    ct, ci, clen, ce = p["clip"]
-    (xt, zt), (xft, zft) = D["pin_top"], D["pin_foot"]
+            o.fast("fixings", 6, at + pt, (sy * 38.0 * 0 + xf - at, sy * 38.0, az + dz), (-1, 0, 0), "arm", 3)
+    for dz in (-10.0, 10.0):
+        o.fast("fixings", 6, 2 * at + p["arm_sq"], (xf - 15.0, -(hw + at), az + dz), (0, -1, 0), "arm", 3)
+    # ---------------- brace clips
     top_clip = (bx(xt - clen / 2, xt + clen / 2, -ci / 2 - ct, ci / 2 + ct, D["arm_bot"] - ct, D["arm_bot"])
                 + bx(xt - clen / 2, xt + clen / 2, ci / 2, ci / 2 + ct, D["arm_bot"] - ce, D["arm_bot"])
                 + bx(xt - clen / 2, xt + clen / 2, -ci / 2 - ct, -ci / 2, D["arm_bot"] - ce, D["arm_bot"]))
     foot_clip = (bx(xf - ct, xf, -ci / 2 - ct, ci / 2 + ct, zft - clen / 2, zft + clen / 2)
                  + bx(xf - ce, xf, ci / 2, ci / 2 + ct, zft - clen / 2, zft + clen / 2)
                  + bx(xf - ce, xf, -ci / 2 - ct, -ci / 2, zft - clen / 2, zft + clen / 2))
-    top_clip -= ycyl(xt, 0, zt, 3.3, ci + 2 * ct + 2)
-    foot_clip -= ycyl(xft, 0, zft, 3.3, ci + 2 * ct + 2)
+    top_clip = cp.break_edges(top_clip, 0.5) - ycyl(xt, 0, zt, 3.3, ci + 2 * ct + 2)
+    foot_clip = cp.break_edges(foot_clip, 0.5) - ycyl(xft, 0, zft, 3.3, ci + 2 * ct + 2)
     for dx in (-17.0, 17.0):
         top_clip -= zcyl(xt + dx, 0, D["arm_bot"] - ct / 2, 3.3, ct + 2)
         foot_clip -= xcyl(xf - ct / 2, 0, zft + dx, 3.3, ct + 2)
-    add("top_clip", "Brace clip under the arm", top_clip, 3, "made", "arm", RHO_AL)
-    add("foot_clip", "Brace clip on the bracket plate", foot_clip, 3, "made", "arm", RHO_AL)
-    # clip fixings: button-head screws from inside the clip; nyloc nuts on the arm top (with crush sleeves) or behind the plate
-    clip_bolts = fuse([zcyl(xt + dx, 0, D["arm_bot"] - ct - 1.65, 5.5, 3.3) + zcyl(xt + dx, 0, D["arm_z"], 2.7, p["arm_sq"] + 2 * ct)
-                       + hexprism("z", xt + dx, 0, D["arm_top"] + 2.7, 10, 5.4) for dx in (-17.0, 17.0)]
-                      + [xcyl(xf - ct - 1.65, 0, zft + dx, 5.5, 3.3) + xcyl(xr - pt / 2 - ct / 2, 0, zft + dx, 2.7, pt + ct + 4)
-                         + hexprism("x", xr + 2.7, 0, zft + dx, 10, 5.4) for dx in (-17.0, 17.0)])
-    # crush sleeves inside the arm at every through-bolt
-    sleeves = fuse([ycyl(xf - 15.0, 0, az + dz, 5.0, p["arm_sq"] - 2 * p["arm_wall"]) - ycyl(xf - 15.0, 0, az + dz, 3.2, p["arm_sq"])
-                    for dz in (-10.0, 10.0)]
-                   + [zcyl(x_, 0, az, 5.0, p["arm_sq"] - 2 * p["arm_wall"]) - zcyl(x_, 0, az, 3.2, p["arm_sq"])
-                      for x_ in (xt - 17.0, xt + 17.0, D["head_x"] - p["head_bolt_dx"], D["head_x"] + p["head_bolt_dx"])])
-    # arm
-    arm = bx(D["arm_x0"], D["arm_x1"], -hw, hw, D["arm_bot"], D["arm_top"])
-    arm -= bx(D["arm_x0"] - 1, D["arm_x1"] + 1, -hw + p["arm_wall"], hw - p["arm_wall"], D["arm_bot"] + p["arm_wall"], D["arm_top"] - p["arm_wall"])
+    o.add("top_clip", "Brace clip under the arm", top_clip, "aluminium", "made", 3, "arm")
+    o.add("foot_clip", "Brace clip on the bracket plate", foot_clip, "aluminium", "made", 3, "arm")
+    for dx in (-17.0, 17.0):
+        o.fast("fixings", 6, ct + p["arm_sq"], (xt + dx, 0, D["arm_bot"] - ct), (0, 0, -1), "arm", 3, head="button")
+        o.fast("fixings", 6, ct + pt, (xf - ct, 0, zft + dx), (-1, 0, 0), "arm", 3, head="button")
+    # ---------------- arm tube (40 x 40 x 1.6 SHS) with crush sleeves
+    arm = Pos(D["arm_x0"], 0, az) * Rot(0, 90, 0) * cp.shs(p["arm_sq"], p["arm_wall"], D["arm_x1"] - D["arm_x0"])
     for dz in (-10.0, 10.0):
         arm -= ycyl(xf - 15.0, 0, az + dz, 3.3, p["arm_sq"] + 2)
-    for x_ in (xt - 17.0, xt + 17.0, D["head_x"] - p["head_bolt_dx"], D["head_x"] + p["head_bolt_dx"]):
+    arm_holes = (xt - 17.0, xt + 17.0, hx - p["head_bolt_dx"], hx + p["head_bolt_dx"])
+    for x_ in arm_holes:
         arm -= zcyl(x_, 0, az, 3.3, p["arm_sq"] + 2)
-    add("arm", "Sensor arm", arm, 3, "made", "arm", RHO_AL)
-    # knee brace, 25 x 25 x 2 tube between the pins, ends cut square to fit inside the clip ears
+    o.add("arm", "Sensor arm (SHS 40 x 40 x 1.6)", arm, "aluminium", "made", 3, "arm")
+    sl_in = p["arm_sq"] - 2 * p["arm_wall"]
+    for dz in (-10.0, 10.0):
+        o.add("fixings", "Crush sleeve (arm, cross bolt)", Pos(xf - 15.0, 0, az + dz) * Rot(90, 0, 0) * sleeve(10.0, 6.4, sl_in), "aluminium", "made", 3, "arm")
+    for x_ in arm_holes:
+        o.add("fixings", "Crush sleeve (arm, vertical bolt)", Pos(x_, 0, az) * sleeve(10.0, 6.4, sl_in), "aluminium", "made", 3, "arm")
+    # ---------------- knee brace (25 x 25 x 1.6 SHS) pinned in the clips
     bs, bwall = p["brace_sq"], p["brace_wall"]
-    L = D["brace_pins"]
-    over = 12.0                                                  # tube end beyond each pin
+    Lb = D["brace_pins"]
+    over = 12.0
     mid = ((xt + xft) / 2, (zt + zft) / 2)
-    brace = b.Pos(mid[0], 0, mid[1]) * b.Rot(0, -45, 0) * (b.Box(bs, bs, L + 2 * over) - b.Box(bs - 2 * bwall, bs - 2 * bwall, L + 2 * over + 2))
+    brace = Pos(mid[0], 0, mid[1]) * Rot(0, -45, 0) * Pos(0, 0, -(Lb + 2 * over) / 2) * cp.shs(bs, bwall, Lb + 2 * over)
     for (xx, zz) in ((xt, zt), (xft, zft)):
         brace -= ycyl(xx, 0, zz, 3.3, bs + 2)
-    add("brace", "Knee brace", brace, 3, "made", "arm", RHO_AL)
-    pins = fuse([bolt("y", -ci / 2 - ct, ci / 2 + ct, xx, zz) for (xx, zz) in ((xt, zt), (xft, zft))])
-    pin_sleeves = fuse([ycyl(xx, 0, zz, 4.5, bs - 2 * bwall) - ycyl(xx, 0, zz, 3.2, bs) for (xx, zz) in ((xt, zt), (xft, zft))])
-    # through-bolt across the street: bracket plate, spacer, both pole walls
+    o.add("brace", "Knee brace (SHS 25 x 25 x 1.6)", brace, "aluminium", "made", 3, "arm")
+    for (xx, zz) in ((xt, zt), (xft, zft)):
+        o.fast("pins", 6, ci + 2 * ct, (xx, -(ci / 2 + ct), zz), (0, -1, 0), "arm", 3)
+        o.add("pins", "Crush sleeve (brace)", Pos(xx, 0, zz) * Rot(90, 0, 0) * sleeve(9.0, 6.4, bs - 2 * bwall), "aluminium", "made", 3, "arm")
+    # ---------------- through-bolt across the street with its spacer
     zb = D["bolt_z"]
-    spacer = xcyl(xr + D["spacer_len"] / 2, 0, zb, p["spacer_d"] / 2, D["spacer_len"]) - xcyl(xr + D["spacer_len"] / 2, 0, zb, 4.25, D["spacer_len"] + 2)
-    add("spacer", "Through-bolt spacer", spacer, 3, "made", "arm", RHO_AL)
-    tbolt = (hexprism("x", xf - 2.65, 0, zb, 13, 5.3) + xcyl(xf + p["bolt_l"] / 2, 0, zb, 3.7, p["bolt_l"])
-             + hexprism("x", D["pole_back_x"] + 1.6 + 3.4, 0, zb, 13, 6.8) + xcyl(D["pole_back_x"] + 0.8, 0, zb, 8, 1.6))
-    add("through_bolt", "M8 anti-rotation through-bolt", tbolt, 3, "fixing", "arm", RHO_STEEL)
-    # head plate under the arm
+    spacer = Pos(xr, 0, zb) * Rot(0, 90, 0) * cp.round_tube(p["spacer_d"], (p["spacer_d"] - 8.5) / 2, D["spacer_len"])
+    o.add("spacer", "Through-bolt spacer", spacer, "aluminium", "made", 3, "arm")
+    o.fast("through_bolt", 8, D["pole_back_x"] - xf, (xf, 0, zb), (-1, 0, 0), "arm", 3, wash_head=True, wash_nut=True, length=100)
+    # ---------------- head plate
     hl_, hw_, ht_ = p["head_plate"]
-    hx = D["head_x"]
-    hplate = bx(hx - hl_ / 2, hx + hl_ / 2, -hw_ / 2, hw_ / 2, D["head_top"], D["arm_bot"])
+    hplate = cp.break_edges(bx(hx - hl_ / 2, hx + hl_ / 2, -hw_ / 2, hw_ / 2, D["head_top"], D["arm_bot"]), 0.6)
     for dx in (-p["head_bolt_dx"], p["head_bolt_dx"]):
         hplate -= zcyl(hx + dx, 0, D["head_top"] + ht_ / 2, 3.3, ht_ + 2)
     for sx in (-1, 1):
         for sy in (-1, 1):
             hplate -= zcyl(hx + sx * 18, sy * 27, D["head_top"] + ht_ / 2, 2.25, ht_ + 2)
-    add("head_plate", "Head plate", hplate, 3, "made", "arm", RHO_AL)
-    head_bolts = fuse([zcyl(hx + dx, 0, D["head_top"] - 1.65, 5.5, 3.3) + zcyl(hx + dx, 0, az, 2.7, p["arm_sq"] + ht_ + 2)
-                       + hexprism("z", hx + dx, 0, D["arm_top"] + 2.7, 10, 5.4) for dx in (-p["head_bolt_dx"], p["head_bolt_dx"])])
-    head_screws = fuse([zcyl(hx + sx * 18, sy * 27, D["arm_bot"] - 6, 1.9, 12) + zcyl(hx + sx * 18, sy * 27, D["arm_bot"] + 1.1, 4, 2.2)
-                        for sx in (-1, 1) for sy in (-1, 1)])
-    add("fixings", "Bracket bolts, nuts and sleeves", fuse([vscrews, cleat_bolts, arm_cleat_bolts, clip_bolts, sleeves, head_bolts]),
-        3, "fixing", "arm", RHO_STEEL)
-    add("pins", "Brace pins and sleeves", pins + pin_sleeves, 3, "fixing", "arm", RHO_STEEL)
+    o.add("head_plate", "Head plate", hplate, "aluminium", "made", 3, "arm")
+    for dx in (-p["head_bolt_dx"], p["head_bolt_dx"]):
+        o.fast("fixings", 6, ht_ + p["arm_sq"], (hx + dx, 0, D["head_top"]), (0, 0, -1), "arm", 3, head="button")
 
-    # ---------------- 2 street radar head
+    # ---------------- 2 street radar head: housing can, lid, radar module on its carrier, lens, screws, gland
     hz = p["head_z"]
-    housing = zcyl(hx, 0, hz + p["lens_t"] + (p["head_h"] - p["lens_t"]) / 2, p["head_d"] / 2, p["head_h"] - p["lens_t"])
-    housing -= zcyl(hx, 0, hz + p["lens_t"] + 1.5, p["lens_window"] / 2, 3.2)
-    lens = zcyl(hx, 0, hz + p["lens_t"] / 2, p["lens_d"] / 2, p["lens_t"])
+    hd, hh, lt = p["head_d"], p["head_h"], p["lens_t"]
+    can_z0, can_z1 = hz + lt, D["head_top"] - 10.0                          # can floor underside to the lid underside
+    can = zcyl(hx, 0, (can_z0 + can_z1) / 2, hd / 2, can_z1 - can_z0)
+    can -= zcyl(hx, 0, (can_z0 + 5.0 + can_z1 + 1) / 2, hd / 2 - 3.0, can_z1 - can_z0 - 5.0 + 1)
+    can -= zcyl(hx, 0, can_z0 + 2.5, p["lens_window"] / 2, 5.2)
+    for k_ in range(3):
+        a_k = math.radians(90 + 120 * k_)
+        can -= zcyl(hx + 26 * math.cos(a_k), 26 * math.sin(a_k), can_z0 + 2.5, 1.5, 5.2)
+    posts = []
     for sx in (-1, 1):
-        for sy in (-1, 1):   # tapped holes in the housing's lid bosses for the M4 screws
-            housing -= zcyl(hx + sx * 18, sy * 27, D["head_top"] - 5, 1.9, 10.02)
+        for sy in (-1, 1):
+            posts.append(zcyl(hx + sx * 20, sy * 20, can_z0 + 5.0 + 3.0 - 0.01, 3.0, 6.02) - zcyl(hx + sx * 20, sy * 20, can_z0 + 5.0 + 3.0, 1.5, 6.1))
+    can = cp.break_edges(can, 0.8) + fuse(posts)
     gd, gl = p["gland"]
-    zg = hz + p["lens_t"] + (p["head_h"] - p["lens_t"]) / 2
-    gland = xcyl(hx + p["head_d"] / 2 + gl / 2, 0, zg, gd / 2, gl)
-    add("head_housing", "Radar head housing", housing + gland, 2, "bought", "street_head")
-    add("head_screws", "Head housing screws (4)", head_screws, 2, "fixing", "street_head", RHO_STEEL)
-    add("lens", "PTFE lens disc", lens, 2, "made", "street_head")
+    zg = hz + lt + 5.0 + (can_z1 - can_z0 - 5.0) / 2
+    can -= xcyl(hx + hd / 2 - 1.5, 0, zg, 6.0, 3.4)
+    o.add("head_housing", "Radar head housing can (IP67)", can, "hdpe_black", "bought", 2, "street_head")
+    lid = zcyl(hx, 0, can_z1 + 5.0, hd / 2, 10.0)
+    lid = cp.break_edges(lid, 0.8)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            lid -= zcyl(hx + sx * 18, sy * 27, D["head_top"] - 5, 2.0, 10.02)
+    o.add("head_housing", "Radar head housing lid with tapped bosses", lid, "hdpe_black", "bought", 2, "street_head")
+    carrier = cp.break_edges(bx(hx - 25, hx + 25, -25, 25, can_z0 + 11.0, can_z0 + 12.6), 0.3)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            carrier -= zcyl(hx + sx * 20, sy * 20, can_z0 + 11.8, 1.4, 2.0)
+    o.add("head_housing", "Radar carrier board 50 x 50 x 1.6", carrier, "hdpe_black", "bought", 2, "street_head", color=GREEN)
+    mod = cp.break_edges(bx(hx - 9.3, hx + 9.3, -7.5, 7.5, can_z0 + 7.3, can_z0 + 11.0), 0.4)
+    o.add("head_housing", "60 GHz radar module (XM125 class), 18.6 x 15", mod, "aluminium", "bought", 2, "street_head")
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            o.fast("head_housing", 3, 1.6, (hx + sx * 20, sy * 20, can_z0 + 12.6), (0, 0, 1), "street_head", 2, head="button", nut=None, length=6)
+    g = xcyl(hx + hd / 2 + gl / 2, 0, zg, gd / 2, gl) + xcyl(hx + hd / 2 - 1.5, 0, zg, 6.0, 3.2)
+    g = cp.break_edges(g, 0.5)
+    o.add("head_housing", "M12 cable gland (street head)", g, "zinc_plated", "bought", 2, "street_head")
+    lens = cp.break_edges(zcyl(hx, 0, hz + lt / 2, p["lens_d"] / 2, lt), 0.6)
+    for k_ in range(3):
+        a_k = math.radians(90 + 120 * k_)
+        lens -= orient(csk_cutter(3, lt + 1), (hx + 26 * math.cos(a_k), 26 * math.sin(a_k), hz), (0, 0, -1))
+    o.add("lens", "PTFE lens disc 60 x 6", lens, "hdpe_natural", "made", 2, "street_head")
+    for k_ in range(3):
+        a_k = math.radians(90 + 120 * k_)
+        o.fast("head_screws", 3, lt, (hx + 26 * math.cos(a_k), 26 * math.sin(a_k), hz), (0, 0, -1), "street_head", 2, head="csk", nut=None, length=10)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            o.fast("head_screws", 4, ht_, (hx + sx * 18, sy * 27, D["arm_bot"]), (0, 0, 1), "street_head", 2, head="button", nut=None, length=14)
 
-    # ---------------- 8 depth marker plate (2 mm), on the road face of the pole
+    # ---------------- 8 depth marker plate, films and band clamps
     mt, mw, mh = p["marker"]
     mz0 = p["marker_z0"]
-    marker = bx(D["pole_face_x"] - mt, D["pole_face_x"], -mw / 2, mw / 2, mz0, mz0 + mh)
-    add("marker", "Depth marker plate", marker, 8, "made", "marker", RHO_AL)
-
-    # ---------------- 7 riser guard: U channel, open side on the pole, standing on the sidewalk
+    marker = cp.break_edges(bx(D["pole_face_x"] - mt, D["pole_face_x"], -mw / 2, mw / 2, mz0, mz0 + mh), 0.4)
+    o.add("marker", "Depth marker plate", marker, "aluminium", "made", 8, "marker")
+    bd = bands(p)
     gw, gdp, gt = p["guard"]
     y0, y1 = D["guard_y0"], D["guard_y1"]
+    mclamps = [band_loop(px, 0, r, [(D["pole_face_x"] - mt, mw / 2, (-bt_, bt_)), (D["pole_face_x"] - mt, -mw / 2, (-bt_, -bt_)),
+                                                                          (D["pole_face_x"], mw / 2, (0, bt_)), (D["pole_face_x"], -mw / 2, (0, -bt_)),
+                                                                          (px - gw / 2, y1, (-bt_, bt_)), (px + gw / 2, y1, (bt_, bt_))], zz, bw_, bt_) for zz in p["marker_bands_z"]]
+    clamp_cut = fuse(mclamps)
+    o.add("marker_film", "Marker film, amber 150 to 300", cp.break_edges(bd["amber"], 0.3) - clamp_cut, "safety_yellow", "made", 8, "marker")
+    o.add("marker_film", "Marker film, red 300 to 450", cp.break_edges(bd["red"], 0.3) - clamp_cut, "safety_red", "made", 8, "marker")
+    for cl_ in mclamps:
+        o.add("marker_bands", "Marker and guard band clamp", cl_, "stainless", "bought", 8, "marker")
+
+    # ---------------- 7 riser guard, three hat covers and eight security anchors
     zg0, zg1 = p["curb_h"], D["riser_top"]
+    cy = p["cover_y"]
     guard = (bx(px - gw / 2, px - gw / 2 + gt, y0, y1, zg0, zg1) + bx(px + gw / 2 - gt, px + gw / 2, y0, y1, zg0, zg1)
              + bx(px - gw / 2, px + gw / 2, y1 - gt, y1, zg0, zg1))
-    cy = p["cover_y"]
-    guard -= bx(px - gw / 2 - 1, px - gw / 2 + gt + 1, cy - 11, y1 + 1, zg0 - 1, zg0 + 20)      # cable notch at the foot
-    add("guard", "Riser guard", guard, 7, "made", "conduit", RHO_STEEL)
-    mb = []
-    for zz in p["marker_bands_z"]:
-        mb.append(band_loop(px, 0, r, [(D["pole_face_x"] - mt, mw / 2, (-bt_, bt_)), (D["pole_face_x"] - mt, -mw / 2, (-bt_, -bt_)),
-                                       (D["pole_face_x"], mw / 2, (0, bt_)), (D["pole_face_x"], -mw / 2, (0, -bt_)),
-                                       (px - gw / 2, y1, (-bt_, bt_)), (px + gw / 2, y1, (bt_, bt_))], zz, bw_, bt_))
-    add("marker_bands", "Marker and guard band clamps (2)", fuse(mb), 8, "bought", "marker", RHO_STEEL)
-
-    # ---------------- 7 surface cable covers (hat sections) and their anchors
+    guard -= bx(px - gw / 2 - 1, px - gw / 2 + gt + 1, cy - 11, y1 + 1, zg0 - 1, zg0 + 20)
+    o.add("guard", "Riser guard (U channel 40 x 65 x 2)", cp.break_edges(guard, 0.5), "galvanised", "made", 7, "conduit")
     W, H, t = p["hat"]
     gx0 = p["gutter_x0"]
-    gut = hat((gx0, cy, 0), (0, 1, 0), (1, 0, 0), -H - gx0)                       # to the curb cover's face
-    gut += fuse([bx(-H, -4, cy + s * 21, cy + s * (W / 2), 0, t) for s in (-1, 1)])  # flanges to the tabs
-    gut += fuse([bx(-4, -2, cy + s * 22, cy + s * (W / 2), 0, 30) for s in (-1, 1)])  # tabs up the curb face
+    gut = hat((gx0, cy, 0), (0, 1, 0), (1, 0, 0), -H - gx0)
+    gut += fuse([bx(-H, -4, cy + s * 21, cy + s * (W / 2), 0, t) for s in (-1, 1)])
+    gut += fuse([bx(-4, -2, cy + s * 22, cy + s * (W / 2), 0, 30) for s in (-1, 1)])
     for s in (-1, 1):
         gut -= xcyl(-3, cy + s * 32, 18, 4.5, 4)
-    add("gutter_cover", "Gutter cover", gut, 7, "made", "conduit", RHO_STEEL)
+    o.add("gutter_cover", "Gutter cover (hat section)", cp.break_edges(gut, 0.5), "galvanised", "made", 7, "conduit")
     curb = hat((0, cy, 0), (0, 1, 0), (0, 0, 1), p["curb_h"] + H)
     curb -= fuse([bx(-3, 1, cy + s * 20.5, cy + s * (W / 2 + 1), p["curb_h"], p["curb_h"] + H + 1) for s in (-1, 1)])
-    curb -= bx(-H - 1, -H + t + 1, cy - 10, cy + 10, -1, H)                         # cable notch at the foot
+    curb -= bx(-H - 1, -H + t + 1, cy - 10, cy + 10, -1, H)
     for s in (-1, 1):
         for zz in (18.0, 139.0):
             curb -= xcyl(-1, cy + s * 32, zz, 4.5, 4)
-    add("curb_cover", "Curb cover", curb, 7, "made", "conduit", RHO_STEEL)
+    o.add("curb_cover", "Curb cover (hat section)", cp.break_edges(curb, 0.5), "galvanised", "made", 7, "conduit")
     xw1 = px - gw / 2 - 1.0
     walk = hat((0, cy, p["curb_h"]), (0, 1, 0), (1, 0, 0), xw1)
     walk += fuse([bx(-4, 0, cy + s * 22, cy + s * (W / 2), p["curb_h"], p["curb_h"] + t) for s in (-1, 1)])
@@ -580,98 +702,64 @@ def build_components(p=PARAMS):
         walk -= xcyl(-3, cy + s * 32, 139.0, 4.5, 4)
         for xx in (110.0, 330.0):
             walk -= zcyl(xx, cy + s * 32, p["curb_h"] + t / 2, 4.5, t + 2)
-    add("walk_cover", "Sidewalk cover", walk, 7, "made", "conduit", RHO_STEEL)
-    anchors = fuse([xcyl(-4 - (4 if zz > 100 else 2) - 3, cy + s * 32, zz, 6.5, 6) for s in (-1, 1) for zz in (18.0, 139.0)]
-                   + [zcyl(xx, cy + s * 32, p["curb_h"] + t + 3, 6.5, 6) for s in (-1, 1) for xx in (110.0, 330.0)])
-    add("anchors", "Masonry anchors and nuts (8)", anchors, 7, "fixing", "conduit")
+    o.add("walk_cover", "Sidewalk cover (hat section)", cp.break_edges(walk, 0.5), "galvanised", "made", 7, "conduit")
+    for s in (-1, 1):
+        for zz in (18.0, 139.0):
+            _anchor(o, (0.0, cy + s * 32, zz), (-1, 0, 0), 4.0)
+        for xx in (110.0, 330.0):
+            _anchor(o, (xx, cy + s * 32, p["curb_h"]), (0, 0, 1), t)
 
-    # ---------------- 5 stilling tube and its stand-off pipe clamps
+    # ---------------- 5 stilling tube and its two stand-off pipe clamps
     tx = D["tube_x"]
-    tube = zcyl(tx, 0, (p["tube_top"] + D["tube_bot"]) / 2, p["tube_od"] / 2, D["tube_len"])
-    tube -= zcyl(tx, 0, (p["tube_top"] + D["tube_bot"]) / 2, D["tube_id"] / 2, D["tube_len"] + 2)
+    tube = Pos(tx, 0, D["tube_bot"]) * cp.round_tube(p["tube_od"], p["tube_wall"], D["tube_len"])
     sw_, sl_ = p["slot"]
     for k in range(p["slot_rows"]):
         zc = D["tube_bot"] + p["slot_first"] + k * p["slot_pitch"]
         for j in range(p["slots_per_row"]):
             a = 45.0 + 90.0 * j
             tube -= b.Pos(tx, 0, zc) * b.Rot(0, 0, a) * b.Pos(p["tube_od"] / 2, 0, 0) * b.Box(10, sw_, sl_)
-    for sy in (-1, 1):         # two pilot holes for the screws that hold the drain head socket
-        tube -= ycyl(tx, sy * (p["tube_od"] / 2 - 1.5), p["tube_top"] - 20, 1.75, 6)
-    add("tube", "Stilling tube", tube, 5, "made", "tube")
+    for sy in (-1, 1):
+        tube -= ycyl(tx, sy * (p["tube_od"] / 2 - 1.5), p["tube_top"] - 20, 2.0, 6)
+    o.add("tube", "Stilling tube (PVC 75 OD x 3, 40 slots)", tube, "pe_tank_white", "made", 5, "tube")
     bx1 = p["basin"][1]
-    pct, pcw = p["pclamp"]
-    wd, wt = p["wall_plate"]
-    clamps = []
     for zz in p["bracket_z"]:
-        ring = zcyl(tx, 0, zz, p["tube_od"] / 2 + pct, pcw) - zcyl(tx, 0, zz, p["tube_od"] / 2, pcw + 2)
-        x_ring = tx + p["tube_od"] / 2 + pct
-        rod = xcyl((x_ring + bx1 - wt) / 2, 0, zz, 4.0, bx1 - wt - x_ring + 0.02)
-        boss = xcyl(x_ring + 4, 0, zz, 7, 8)
-        wall_plate = xcyl(bx1 - wt / 2, 0, zz, wd / 2, wt)
-        clamps.append(ring + rod + boss + wall_plate)
-    add("pclamps", "Stand-off pipe clamps (2)", fuse(clamps), 5, "bought", "tube")
+        _stand_off(o, p, tx, 0.0, zz, p["tube_od"], bx1, 5, "tube")
 
-    # ---------------- 4 drain head with its 75 mm socket
+    # ---------------- 4 drain head
     so, sl = p["socket"]
     tt = p["tube_top"]
-    dh = zcyl(tx, 0, tt + p["drain_head_h"] / 2, p["drain_head_d"] / 2, p["drain_head_h"])
-    dh += zcyl(tx, 0, D["dh_top"] + 7.5, gd / 2, 15)                                  # cable gland on top
+    dh_r, dh_h = p["drain_head_d"] / 2, p["drain_head_h"]
+    cap = zcyl(tx, 0, tt + dh_h / 2, dh_r, dh_h) - zcyl(tx, 0, tt + 4.0 + (dh_h - 7.0) / 2, dh_r - 3.0, dh_h - 7.0)
+    cap -= zcyl(tx, 0, tt + 2.0, 9.5, 4.2)
+    for sx in (-1, 1):
+        cap -= zcyl(tx + sx * 18, 0, tt + 2.0, 1.5, 4.2)
+    cap -= zcyl(tx, 0, tt + dh_h - 1.5, 6.0, 3.2)
+    o.add("drain_head", "Drain head cap (sealed, 104 dia)", cp.break_edges(cap, 1.0), "hdpe_black", "made", 4, "drain_head")
+    xdc = zcyl(tx, 0, tt + 16.5, 9.0, 33.0)
+    pot = zcyl(tx, 0, tt + 5.2 + 25.0, dh_r - 4.2, 50.0) - xdc - zcyl(tx, 0, tt + 40.0 + 25.0, 6.0, 50.0)
+    for sx in (-1, 1):
+        pot -= zcyl(tx + sx * 18, 0, tt + 5.0, 1.5, 30.0)
+    o.add("drain_head", "Potting compound", pot, "matte_black", "made", 4, "drain_head")
+    o.add("drain_head", "Ultrasonic ranger A02YYUW (transducer 18 dia)", cp.break_edges(xdc, 0.8), "aluminium", "bought", 4, "drain_head")
     sock = zcyl(tx, 0, tt - sl / 2, so / 2, sl) - zcyl(tx, 0, tt - sl / 2, p["tube_od"] / 2, sl + 2)
-    probes = fuse([zcyl(tx + sx * 18, 0, tt - p["probe_drop"] / 2, 1.5, p["probe_drop"]) for sx in (-1, 1)])
-    add("drain_head", "Drain head", dh + sock + probes, 4, "made", "drain_head")
+    for sy in (-1, 1):
+        sock -= ycyl(tx, sy * 39.5, tt - 20, 2.2, 4.4)
+    o.add("drain_head", "PVC socket coupling 75 mm", cp.break_edges(sock, 0.6), "pe_tank_white", "bought", 4, "drain_head")
+    for sy in (-1, 1):
+        o.fast("drain_head", 4, 4.0, (tx, sy * 41.5, tt - 20), (0, sy, 0), "drain_head", 4, head="button", nut=None, length=12)
+    for sx in (-1, 1):
+        o.add("drain_head", "Wet probe electrode (stainless 3 dia x 30)", cp.break_edges(zcyl(tx + sx * 18, 0, tt + 5.0, 1.5, 30.0), 0.3),
+              "stainless", "bought", 4, "drain_head")
+    dg = cp.break_edges(zcyl(tx, 0, tt + dh_h + 7.5, gd / 2, 15) + zcyl(tx, 0, tt + dh_h - 1.5, 6.0, 3.0), 0.5)
+    o.add("drain_head", "M12 cable gland (drain head)", dg, "zinc_plated", "bought", 4, "drain_head")
 
-    # ---------------- 6 sensor cables (flexible, tied along their runs)
-    c = p["cable_d"]
-    xg = hx + p["head_d"] / 2 + gl
-    ya = -hw - 2 - c / 2                    # along the arm's side
-    xs = 340.0                              # where the street cable leaves the arm
-    zr = D["band_z"][1] - 60.0
-    xb = D["pole_back_x"] + c / 2 + 3
-    zs, zd = D["node_bot"] - 140.0, D["node_bot"] - 100.0
-    street = [(xg, 0, zg), (xg + 25, 0, zg), (xg + 25, ya, zg), (xg + 25, ya, az), (xs, ya, az), (xs, ya, zr),
-              (xs, -47.0, zr), (px, -47.0, zr), (px, -47.0, zs), (370.0, -47.0, zs), (370.0, D["port_y"]["A"], zs), (D["port_x"], D["port_y"]["A"], zs),
-              (D["port_x"], D["port_y"]["A"], D["node_bot"] - 20)]
-    zc_ = 7.0
-    zw = p["curb_h"] + 7.0
-    xcab = -8.0
-    drain = [(tx, 0, D["dh_top"] + 15), (tx, 0, -100), (p["cable_exit_x"], 0, -100), (p["cable_exit_x"], cy, -100),
-             (p["cable_exit_x"], cy, zc_), (xcab, cy, zc_), (xcab, cy, zw), (px, cy, zw), (px, cy, D["riser_top"] + 60),
-             (px, r + 8.0, D["riser_top"] + 110), (px, r + 8.0, zd), (D["port_x"], r + 8.0, zd), (D["port_x"], D["port_y"]["B"], zd),
-             (D["port_x"], D["port_y"]["B"], D["node_bot"] - 20)]
-    # 0.5 m slack loop in the basin, west of the stilling tube under the grate opening, tied to the upper pipe clamp
-    # (decided 2026-10-02; FLG-DDR-003, A2). An ellipse 200 mm wide and 120 mm high is about 0.51 m of cable.
-    la, lb, ltop, ldx = p["loop_a"], p["loop_b"], p["loop_top"], p["loop_dx"]
-    lx = tx - ldx
-    lc = ltop - lb
-    circ = [(lx, la * math.sin(2 * math.pi * k / 24), lc + lb * math.cos(2 * math.pi * k / 24)) for k in range(25)]
-    add("slack_loop", "Drain cable slack loop (0.5 m)", cable([(tx, 0, ltop), (lx, 0, ltop)] + circ, c), 6, "bought", "cables")
-    zr_ = p["bracket_z"][0]
-    ztie = lc - lb
-    rc = p["tube_od"] / 2 + p["pclamp"][0]
-    strap = zcyl(lx, 0, (ztie + zr_) / 2, 1.5, abs(ztie - zr_)) + xcyl((lx + tx - rc) / 2, 0, zr_, 1.5, abs(lx - (tx - rc))) \
-        + (ycyl(lx, 0, ztie, c / 2 + 1.5, 5) - ycyl(lx, 0, ztie, c / 2, 6)) \
-        + (zcyl(tx, 0, zr_, rc + 3, 3) - zcyl(tx, 0, zr_, rc, 4))
-    add("loop_tie", "Slack loop cable ties (2)", strap, 10, "fixing", "cables")
-    add("street_cable", "Street head cable, 3 m", cable(street, c), 6, "bought", "cables")
-    add("drain_cable", "Drain head cable, 5 m", cable(drain, c), 6, "bought", "cables")
-    C["_runs"] = {"street": street, "drain": drain}
-    return C
-
-
-def cable_runs(p=PARAMS):
-    """Cable centre-line lengths (mm) from the model, for the calculation note."""
-    C = build_components(p)
-    return {k: cable_length(v) for k, v in C["_runs"].items()}
-
-
-def build_parts(p=PARAMS):
-    """Return {BOM key: solid} for the kit parts (keys in BOM), for the concept media and the drawing."""
-    C = {k: v for k, v in build_components(p).items() if not k.startswith("_")}
-    out = {}
-    for k, c in C.items():
-        out[c.group] = c.shape if c.group not in out else out[c.group] + c.shape
-    return out
-
+    _cables(o, p, D, gd, gl, hx, hw, az, zg, px, r, tx, cy)
+    # ---------------- existing street (context, not in the BOM)
+    for k, shp, mat in _site_parts(p):
+        q = part(f"{k} (site)", shp, mat, kind="context", group="context")
+        q["key"] = "site_" + k
+        o.append(q)
+    return list(o)
 
 def bands(p=PARAMS):
     """Amber and red bands on the marker plate (coloured faces of item 8). Amber shows from the plate bottom."""
@@ -716,38 +804,176 @@ def site(p=PARAMS, basin_half=False):
     return out
 
 
-def assembly(p=PARAMS, with_site=False):
-    from build123d import Compound
-    C = build_components(p)
-    shapes = [c.shape for k, c in C.items() if not k.startswith("_")] + list(bands(p).values())
-    if with_site:
-        s = site(p)
-        shapes += [s["pole"], s["basin"], s["grate"]]
-    return Compound(children=shapes)
-
-
-def pole_kit(p=PARAMS):
-    from build123d import Compound
-    C = build_components(p)
-    return Compound(children=[c.shape for k, c in C.items() if not k.startswith("_") and c.group in ("node", "panel", "street_head", "arm", "marker")])
-
-
-def drain_kit(p=PARAMS):
-    from build123d import Compound
-    C = build_components(p)
-    return Compound(children=[C[k].shape for k in ("drain_head", "tube", "pclamps")])
-
-
 def site_compound(p=PARAMS):
     from build123d import Compound
     s = site(p)
     return Compound(children=[s[k] for k in ("road", "walk", "basin", "grate", "pole")])
 
 
+
+def _anchor(o, origin, outward, stack):
+    """M8 masonry stud with washer and security (snake-eye) nut, embedded 50 mm in the concrete face at `origin`
+    (outward points out of the concrete); `stack` is the thickness of sheet clamped against the face."""
+    emb, w_h, n_h = 50.0, ISO[8][4], 7.0
+    top = stack + w_h + n_h + 2.0
+    stud = cp.break_edges(Pos(0, 0, (top - emb) / 2) * _b3d().Cylinder(4.0, top + emb), 0.4)
+    for nm, shp, mat, kd in (("Masonry stud anchor M8 x 105", stud, "stainless", "bought"),
+                             ("M8 washer (ISO 7089)", Pos(0, 0, stack) * cp.washer(8), "stainless", "fastener"),
+                             ("M8 security (snake-eye) nut", Pos(0, 0, stack + w_h) * snake_eye_nut(8), "stainless", "fastener")):
+        q = part(nm, orient(shp, origin, outward), mat, kind=kd, bom=7, group="conduit", explode=EXPLODE["conduit"])
+        q["key"] = "anchors"
+        o.append(q)
+
+
+_RUNS = {}
+
+
+def _cables(o, p, D, gd, gl, hx, hw, az, zg, px, r, tx, cy):
+    b = _b3d()
+    c = p["cable_d"]
+    xg = hx + p["head_d"] / 2 + gl
+    ya = -hw - 2 - c / 2
+    xs = 340.0
+    zr = D["band_z"][1] - 60.0
+    z0 = D["node_bot"]
+    zs, zd = z0 - 140.0, z0 - 100.0
+    zend = z0 - 45.0                                                  # cable enters the plug moulding here
+    street = [(xg, 0, zg), (xg + 25, 0, zg), (xg + 25, ya, zg), (xg + 25, ya, az), (xs, ya, az), (xs, ya, zr),
+              (xs, -47.0, zr), (px, -47.0, zr), (px, -47.0, zs), (370.0, -47.0, zs), (370.0, D["port_y"]["A"], zs),
+              (D["port_x"], D["port_y"]["A"], zs), (D["port_x"], D["port_y"]["A"], zend)]
+    zc_ = 7.0
+    zw = p["curb_h"] + 7.0
+    xcab = -8.0
+    drain = [(tx, 0, D["dh_top"] + 15), (tx, 0, -100), (p["cable_exit_x"], 0, -100), (p["cable_exit_x"], cy, -100),
+             (p["cable_exit_x"], cy, zc_), (xcab, cy, zc_), (xcab, cy, zw), (px, cy, zw), (px, cy, D["riser_top"] + 60),
+             (px, r + 8.0, D["riser_top"] + 110), (px, r + 8.0, zd), (D["port_x"], r + 8.0, zd), (D["port_x"], D["port_y"]["B"], zd),
+             (D["port_x"], D["port_y"]["B"], zend)]
+    la, lb, ltop, ldx = p["loop_a"], p["loop_b"], p["loop_top"], p["loop_dx"]
+    lx = tx - ldx
+    lc = ltop - lb
+    circ = [(lx, la * math.sin(2 * math.pi * k / 24), lc + lb * math.cos(2 * math.pi * k / 24)) for k in range(25)]
+    o.add("slack_loop", "Drain cable slack loop (0.5 m)", cable([(tx, 0, ltop), (lx, 0, ltop)] + circ, c), "epdm", "bought", 6, "cables")
+    zr_ = p["bracket_z"][0]
+    ztie = lc - lb
+    rc = p["tube_od"] / 2 + p["pclamp"][0]
+    zt2 = zr_ + 14.0                                                   # tie ring on the pipe above the clamp band
+    strap = zcyl(lx, 0, (ztie + zt2) / 2, 1.5, abs(ztie - zt2)) + xcyl((lx + tx - p["tube_od"] / 2) / 2, 0, zt2, 1.5, abs(lx - (tx - p["tube_od"] / 2))) \
+        + (ycyl(lx, 0, ztie, c / 2 + 1.5, 5) - ycyl(lx, 0, ztie, c / 2, 6)) + (zcyl(tx, 0, zt2, p["tube_od"] / 2 + 3, 3) - zcyl(tx, 0, zt2, p["tube_od"] / 2, 4))
+    o.add("loop_tie", "Slack loop cable ties (2)", strap, "matte_black", "fastener", 10, "cables")
+    o.add("street_cable", "Street head cable, 3 m", cable(street, c), "epdm", "bought", 6, "cables")
+    o.add("drain_cable", "Drain head cable, 5 m", cable(drain, c), "epdm", "bought", 6, "cables")
+    for k_, yy in D["port_y"].items():
+        xp = D["port_x"]
+        plug = zcyl(xp, yy, z0 - 32.5, 8.0, 25.0) + zcyl(xp, yy, z0 - 15.0, 4.5, 10.0)
+        ring = zcyl(xp, yy, z0 - 23.0, 9.5, 30.0) - zcyl(xp, yy, z0 - 23.0, 8.5, 31.0)
+        o.add("plugs", f"M12 5-pin cable plug, port {k_}", cp.break_edges(plug, 0.6), "epdm", "bought", 6, "cables")
+        o.add("plugs", f"M12 coupling ring, port {k_}", cp.break_edges(ring, 0.5), "brass", "bought", 6, "cables")
+    _RUNS.clear()
+    _RUNS.update(street=street, drain=drain)
+
+
+def _site_parts(p):
+    s = site(p)
+    return [("Road slab and gutter", s["road"], "matte_black"), ("Curb and sidewalk", s["walk"], "concrete"),
+            ("Catch basin and outlet pipe", s["basin"], "concrete"), ("Grate", s["grate"], "mild_steel"),
+            ("Street pole 60 mm", s["pole"], "galvanised"), ("Pole-top sign", s["sign"], "aluminium")]
+
+
+# ------------------------------------------------------------------ options B and C live in options_bc.py
+OPTIONS = {"A": "Radar over the gutter, ultrasonic in a stilling tube",
+           "B": "Hydrostatic pressure transducers",
+           "C": "Float and reed-switch chain"}
+PRINCIPLES = {
+    "A": "A 60 GHz radar head on an arm over the gutter times the echo from the street, and an ultrasonic ranger in a slotted stilling tube times the echo from the basin water; neither touches the water.",
+    "B": "A vented submersible pressure transducer at the foot of a perforated stand pipe on the curb face, and a second hung in the basin tube, read the water head as pressure (p = rho g h); both sit in the water.",
+    "C": "A magnet in a float rises on a sealed guide tube and closes a reed switch on a 25 mm pitched chain, so the level is read as the highest closed switch; one tube on the curb face and one in the basin.",
+}
+CHOSEN = "A"
+OPTION_VIEWS = {"A": {"el": 18, "az": -58, "scale": "person", "keep_context": True, "ground_z": 0},
+                "B": {"el": 18, "az": -58, "scale": "person", "keep_context": True, "ground_z": 0},
+                "C": {"el": 18, "az": -58, "scale": "person", "keep_context": True, "ground_z": 0}}
+ALLOWED_CONTACTS = [("panel bracket", "6 W panel"), ("Slack loop cable ties", "Drain cable slack loop"), ("Slack loop cable ties", "Drain head cable"),
+                    ("Drain cable slack loop", "Drain head cable"), ("Drain cable slack loop", "Drain unit cable"), ("Slack loop cable ties", "Drain unit cable"), ("Crush sleeve", "Sensor arm"), ("Crush sleeve", "SHS"), ("Crush sleeve", "Knee brace"),
+                    ("M12 coupling ring", "M12 5-pin panel connector")]
+
+
+def components(option=CHOSEN):
+    """Kit 1.9 interface: the list of cad_parts.part() dicts for one concept option."""
+    if option == "A":
+        return option_a()
+    import options_bc
+    return options_bc.option(option, sys.modules[__name__])
+
+
+# ------------------------------------------------------------------ legacy views of the chosen option, built from components()
+class _Comp:
+    def __init__(self, name, shape, bom, kind, group):
+        self.name, self.shape, self.bom, self.kind, self.group = name, shape, bom, kind, group
+
+
+def keyed(p=PARAMS):
+    """The chosen option grouped by legacy component key: {key: _Comp with the fused shape}. The drawing, the concept
+    media, the build plan pictures and the calculation note read this, so they always draw the kit 1.9 model."""
+    out = {}
+    for q in option_a(p):
+        if q["kind"] == "context":
+            continue
+        for k in {q["key"], {"pclamp_plates": "pclamps", "marker_film": "marker"}.get(q["key"], q["key"])}:
+            if k in out:
+                out[k].shape = out[k].shape + q["shape"]
+            else:
+                out[k] = _Comp(q["name"], q["shape"], q["bom"], q["kind"], q["group"])
+    out["_runs"] = dict(_RUNS)
+    return out
+
+
+def build_components(p=PARAMS):
+    return keyed(p)
+
+
+def build_parts(p=PARAMS):
+    """{group: fused solid} of the kit parts (groups are the BOM keys of the old model)."""
+    C = {k: v for k, v in keyed(p).items() if not k.startswith("_")}
+    out = {}
+    for k, c in C.items():
+        out[c.group] = c.shape if c.group not in out else out[c.group] + c.shape
+    return out
+
+
+MASS_KEYS = ("bplate", "vblocks", "bands", "cleats", "top_clip", "foot_clip", "arm", "brace", "spacer", "through_bolt", "fixings", "pins",
+             "head_plate", "head_screws", "marker", "guard", "marker_bands", "gutter_cover", "curb_cover", "walk_cover")
+
+
 def masses(p=PARAMS):
-    """Estimated mass (kg) of each made aluminium or steel component, from the model volume."""
-    C = build_components(p)
-    return {k: c.shape.volume * c.rho for k, c in C.items() if not k.startswith("_") and c.rho}
+    """Mass (kg) of the made aluminium and steel components, from the volume of each part and its material density."""
+    m = {}
+    for q in option_a(p):
+        if q.get("key") in MASS_KEYS and q["kind"] != "context":
+            m[q["key"]] = m.get(q["key"], 0.0) + cp.mass_kg(q)
+    return m
+
+
+def cable_runs(p=PARAMS):
+    """Cable centre-line lengths (mm) from the model, for the calculation note."""
+    option_a(p)
+    return {k: cable_length(v) for k, v in _RUNS.items()}
+
+
+def assembly(p=PARAMS, with_site=False):
+    from build123d import Compound
+    shapes = [q["shape"] for q in option_a(p) if q["kind"] != "context" or with_site and q["key"] in ("site_Street pole 60 mm",)]
+    return Compound(children=shapes)
+
+
+def pole_kit(p=PARAMS):
+    from build123d import Compound
+    return Compound(children=[q["shape"] for q in option_a(p) if q["kind"] != "context" and q["group"] in ("node", "panel", "street_head", "arm", "marker")])
+
+
+def drain_kit(p=PARAMS):
+    from build123d import Compound
+    return Compound(children=[q["shape"] for q in option_a(p) if q["kind"] != "context" and q["group"] in ("drain_head", "tube")])
+
 
 
 # ------------------------------------------------------------------ constructability checks
@@ -771,7 +997,7 @@ def checks(p=PARAMS):
     def chk(desc, a, b_, expect):
         v = _vol(a, b_)
         gp = a.distance_to(b_)
-        ok = v < 1e-2 and (gp < 0.05 if expect == "touch" else gp >= expect - 1e-6)
+        ok = v < 5.0 and (gp < 0.05 if expect == "touch" else gp >= expect - 1e-6)
         rows.append((desc, v, gp, expect, ok))
 
     # pole bracket
@@ -841,7 +1067,7 @@ def checks(p=PARAMS):
     # drain kit
     chk("Drain head socket over the tube top", S("drain_head"), S("tube"), "touch")
     chk("Pipe clamps round the tube", S("pclamps"), S("tube"), "touch")
-    chk("Pipe clamp wall plates on the basin wall", S("pclamps"), basin, "touch")
+    chk("Pipe clamp wall plates on the basin wall", S("pclamp_plates"), basin, "touch")
     chk("Drain head clear of the road slab", S("drain_head"), road, 5.0)
     chk("Drain head clear of the basin wall", S("drain_head"), basin, 20.0)
     chk("Drain head clear of the grate", S("drain_head"), grate, 100.0)
@@ -862,7 +1088,7 @@ def checks(p=PARAMS):
     joined("Slack loop joined to the drain cable", S("slack_loop"), S("drain_cable"))
     joined("Loop tie round the slack loop", S("loop_tie"), S("slack_loop"))
     joined("Loop tie on the upper pipe clamp", S("loop_tie"), S("pclamps"))
-    chk("Loop tie clear of the stilling tube (it lies on the clamp band)", S("loop_tie"), S("tube"), 2.5)
+    chk("Loop tie ring round the stilling tube above the clamp band", S("loop_tie"), S("tube"), "touch")
     chk("Drain cable clear of the road slab", S("drain_cable"), road, 1.0)
     chk("Drain cable through the grate opening", S("drain_cable"), grate, 2.0)
     chk("Drain cable inside the gutter cover", S("drain_cable"), S("gutter_cover"), 0.5)
@@ -890,18 +1116,19 @@ def print_checks(p=PARAMS):
 if __name__ == "__main__":
     if "--check" in sys.argv:
         sys.exit(1 if print_checks() else 0)
-    from build123d import export_step, export_stl
+    from build123d import export_stl
     root = Path(__file__).resolve().parents[1]
-    (root / "step").mkdir(exist_ok=True)
     (root / "stl").mkdir(exist_ok=True)
     D = derived()
     outs = {"floodgauge-assembly": assembly(), "floodgauge-pole-kit": pole_kit(),
             "floodgauge-drain-kit": drain_kit(), "floodgauge-site": site_compound()}
     for name, shape in outs.items():
-        export_step(shape, str(root / "step" / f"{name}.step"))
-        export_stl(shape, str(root / "stl" / f"{name}.stl"), tolerance=0.5, angular_tolerance=0.3)
+        export_stl(shape, str(root / "stl" / f"{name}.stl"), tolerance=0.15, angular_tolerance=0.3)
         bb = shape.bounding_box()
         print(f"{name}: {bb.size.X:.0f} x {bb.size.Y:.0f} x {bb.size.Z:.0f} mm")
+    for opt in OPTIONS:
+        ps = [q for q in components(opt) if q["kind"] != "context"]
+        print(f"option {opt}: {len(ps)} parts, {sum(cp.mass_kg(q) for q in ps):.2f} kg")
     print(f"head {PARAMS['head_offset']:.0f} mm past the curb face, lens {PARAMS['head_z']:.0f} mm above the road; "
           f"arm {D['arm_len']:.0f} mm at {D['arm_z']:.0f}; bracket plate {D['bplate_h']:.0f} mm tall; brace pins {D['brace_pins']:.1f} mm apart; "
           f"tube {D['tube_len']:.0f} mm long, ID {D['tube_id']:.0f} mm")

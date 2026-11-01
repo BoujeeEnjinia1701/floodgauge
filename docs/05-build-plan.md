@@ -525,7 +525,7 @@ After the pilot is built, the grate is lifted for cleaning in this order, with t
 
 ## 5. First checks
 
-These are the checks a TRL 4 test report would record; this plan only lists them. Requirement numbers are those of FLG-REQ-001.
+These are the checks a TRL 4 test report would record; this plan only lists them. Requirement numbers R1 to R17 are the "Was" numbers of PR-001 to PR-017 in FLG-PRS-001.
 
 *Table 2. First checks.*
 
@@ -569,5 +569,5 @@ Stop at each point. Carry on only when everything listed is true.
 - Calculations: `docs/04-calcs/01-sizing.md` (FLG-CAL-001 v0.4) and `docs/04-calcs/sizing.py`; arm and bracket [H1] to [H5], mass [I1], [I2], cables [J1], [J2].
 - Bill of materials: `bom/bom.csv`.
 - Decisions: `docs/decisions/0003-design-for-construction.md` (FLG-DDR-003), with FLG-DDR-001 and FLG-DDR-002; register `docs/06-design-decisions.md` (FLG-DEC-001).
-- Requirements: `docs/03-requirements.md` (FLG-REQ-001 v0.6).
+- Requirements: `docs/03-requirements.md` (FLG-PRS-001 v0.9).
 - FieldNode: the FieldNode repo's build plan FND-BLD-001.

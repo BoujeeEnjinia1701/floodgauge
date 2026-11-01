@@ -1,6 +1,6 @@
 # FloodGauge
 
-![TRL 3](https://img.shields.io/badge/TRL-3%20of%209-0F766E) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-111827) ![Software: MIT](https://img.shields.io/badge/software-MIT-111827) [![DOI](https://zenodo.org/badge/1388476449.svg)](https://zenodo.org/badge/latestdoi/1388476449) [![REUSE compliant](https://github.com/BoujeeEnjinia1701/floodgauge/actions/workflows/reuse.yml/badge.svg)](https://github.com/BoujeeEnjinia1701/floodgauge/actions/workflows/reuse.yml) [![Archived in Software Heritage](https://archive.softwareheritage.org/badge/origin/https://github.com/BoujeeEnjinia1701/floodgauge/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/BoujeeEnjinia1701/floodgauge)
+![TRL 3](https://img.shields.io/badge/TRL-3%20of%209-0F766E) ![Stage P3](https://img.shields.io/badge/stage-P3%20design%20outputs-0F766E) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-111827) ![Software: MIT](https://img.shields.io/badge/software-MIT-111827) [![DOI](https://zenodo.org/badge/1388476449.svg)](https://zenodo.org/badge/latestdoi/1388476449) [![REUSE compliant](https://github.com/BoujeeEnjinia1701/floodgauge/actions/workflows/reuse.yml/badge.svg)](https://github.com/BoujeeEnjinia1701/floodgauge/actions/workflows/reuse.yml) [![Archived in Software Heritage](https://archive.softwareheritage.org/badge/origin/https://github.com/BoujeeEnjinia1701/floodgauge/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/BoujeeEnjinia1701/floodgauge)
 
 **Area:** Smart Cities · **TRL:** 3 of 9 (proof of concept on paper) · **Value-engineering target:** USD 160 for FloodGauge-specific parts; estimated cost of the constructable design USD 205.50 (FieldNode costed separately) · **Difficulty:** 2 of 5
 
@@ -8,7 +8,7 @@ A street and drain water level sensor using ultrasonic or radar ranging that pub
 
 ![FloodGauge: street and drain water level sensor, product render](media/render-hero.png)
 
-[Exploded render](media/render-exploded.png) · [Detail render](media/render-detail.png) · [Interactive 3D model](media/viewer.html) · [Concept blueprint (PDF)](media/concept-blueprint.pdf) · [General arrangement (PDF)](cad/drawings/FLG-DWG-001.pdf) · [Calculations](docs/04-calcs/01-sizing.md) · [Prototype build plan](docs/05-build-plan.md) · [Design decisions](docs/06-design-decisions.md) · [Review note](docs/REVIEW.md)
+[Exploded render](media/render-exploded.png) · [Studio render](media/render-studio.png) · [Interactive 3D model](media/viewer.html) · [Concept blueprint (PDF)](media/concept-blueprint.pdf) · [General arrangement (PDF)](cad/drawings/FLG-DWG-001.pdf) · [STEM check](docs/01b-stem-check.md) · [Concept options](docs/02a-concept-options.md) · [Calculations](docs/04-calcs/01-sizing.md) · [Prototype build plan](docs/05-build-plan.md) · [Requirements](docs/03-requirements.md) · [Traceability](docs/03b-traceability.md) · [Risk register](docs/09-risk.md) · [Design decisions](docs/06-design-decisions.md) · [Review note](docs/REVIEW.md)
 
 ## Concept rationale
 
@@ -60,6 +60,16 @@ A street and drain water level sensor using ultrasonic or radar ranging that pub
 
 Full design precis: [docs/02-concept.md](docs/02-concept.md)
 
+## STEM check
+
+Thirty-two claims across the three concept options are checked (FLG-STM-001, `docs/04-calcs/stem_check.py`): fifteen are within known science and seventeen are plausible and wait for the radar and ranger data sheets, the weighed mass, a module immersion rating, a transducer class or the TRL 4 tests, so the check stays open; none fails outright. One detail failed on the first pass and was fixed under Amish's standing instruction: option C's solid ring floats sank, so they became sealed hollow shells filled with foam (FLG-DDR-004 F1). An independent review also showed the through-bolt's twist factor of 37 was wrong (it is 1.8, with a stronger class of bolt, FLG-DDR-004 F2), which makes the mass on the pole and the twist on small poles the two open structural points.
+
+## Concept options
+
+![Three ways to read street and drain water level, side by side at one scale](media/options.png)
+
+Option A, radar over the gutter with an ultrasonic ranger in a stilling tube (the current design, score 163 of 220), option B, hydrostatic pressure transducers (174), and option C, a float and reed-switch chain (160), are modelled at the same level of detail (FLG-OPT-001): 171, 112 and 128 parts. B leads A by 6.7 %, inside the 10 % band, so no pick is made and both go to Amish (FLG-DDR-004, "Proposed, awaiting Amish"); C misses the 10 mm accuracy target at its 25 mm switch pitch.
+
 ## Key components
 
 - FieldNode core (enclosure, 6 W solar panel, LiFePO4 cell, LoRaWAN radio), shared with other lab projects
@@ -92,10 +102,11 @@ The [prototype build plan](docs/05-build-plan.md) (FLG-BLD-001) shows how to mak
 
 | Folder | Contents |
 | --- | --- |
-| `docs/` | Problem, concept, requirements, calculations and design decisions |
-| `cad/src/` | build123d Python source, the source of truth for all geometry |
-| `cad/step/`, `cad/stl/` | Exported models for FreeCAD, other CAD tools and printing |
-| `cad/drawings/` | 2D sketches and dimensioned drawings |
+| `docs/` | Controlled documents (PRB, STM, OPT, PRC, URS, PRS, RTM, CAL, BLD, DEC, REG, FEA, RSK, MKT, PLN, DDR) and `REVIEW.md` |
+| `docs/04-calcs/` | `sizing.py` (FLG-CAL-001) and `stem_check.py` (FLG-STM-001) |
+| `cad/src/` | build123d Python source, the source of truth for all geometry: `model.py` (options A, B and C, kit 1.9, detail level D3), `options_bc.py`, `flg_parts.py`, `sheets.py`, `build_plan_media.py`, `concept_media.py`, `product_model.py` |
+| `cad/step/`, `cad/stl/` | STEP per part and per assembly for every option; STL of the chosen design |
+| `cad/drawings/` | FLG-DWG-001 general arrangement and FLG-DWG-101 to 116 making sketches |
 | `bom/` | Bill of materials |
 | `electronics/` | KiCad schematics and PCB layouts |
 | `firmware/` | Microcontroller code |
@@ -104,7 +115,7 @@ The [prototype build plan](docs/05-build-plan.md) (FLG-BLD-001) shows how to mak
 
 ## Documentation
 
-Controlled documents follow the portfolio [documentation standard](.kit/STANDARDS.md). Each carries a document ID (FLG-PRC-001 for the precis), a version and a revision history. Branded PDFs are built with `python .kit/render.py` and attached to GitHub Releases when a document is tagged, for example `FLG-PRC-001/v1.0`.
+Controlled documents follow the portfolio [documentation standard](.kit/STANDARDS.md). Run `python .kit/render.py --check` to validate them, `python .kit/cad_check.py --export` for the CAD fidelity check and `python docs/04-calcs/sizing.py` for the calculations. Each carries a document ID (FLG-PRC-001 for the precis), a version and a revision history. Branded PDFs are built with `python .kit/render.py` and attached to GitHub Releases when a document is tagged, for example `FLG-PRC-001/v1.0`.
 
 ## Credits
 

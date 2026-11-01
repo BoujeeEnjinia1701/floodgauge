@@ -21,7 +21,7 @@ from model import PARAMS as P, derived, build_components, site, bx, fuse, cable 
 
 OUT = ROOT / "docs" / "05-build-plan"
 DWG = ROOT / "cad" / "drawings"
-DATE = "2026-10-01"
+DATE = "2026-10-24"
 D = derived(P)
 _ALL = build_components(P)
 C = {k: v for k, v in _ALL.items() if not k.startswith("_")}

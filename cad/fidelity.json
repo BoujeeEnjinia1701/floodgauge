@@ -1,0 +1,47 @@
+{
+ "level": "D3",
+ "stage": "P3",
+ "hash": "44841c199f701101",
+ "options": {
+  "A": {
+   "title": "Radar over the gutter, ultrasonic in a stilling tube",
+   "parts": 171,
+   "made_or_bought": 87,
+   "fasteners": 84,
+   "welds": 0,
+   "bare": [],
+   "bare_share": 0.0,
+   "interference": [],
+   "mass_kg": 9.5,
+   "step_files": 87
+  },
+  "B": {
+   "title": "Hydrostatic pressure transducers",
+   "parts": 112,
+   "made_or_bought": 69,
+   "fasteners": 43,
+   "welds": 0,
+   "bare": [],
+   "bare_share": 0.0,
+   "interference": [],
+   "mass_kg": 8.3,
+   "step_files": 0
+  },
+  "C": {
+   "title": "Float and reed-switch chain",
+   "parts": 130,
+   "made_or_bought": 86,
+   "fasteners": 44,
+   "welds": 0,
+   "bare": [],
+   "bare_share": 0.0,
+   "interference": [],
+   "mass_kg": 8.0,
+   "step_files": 0
+  }
+ },
+ "failures": [],
+ "warnings": [],
+ "passed": true,
+ "seconds": 133.5
+}

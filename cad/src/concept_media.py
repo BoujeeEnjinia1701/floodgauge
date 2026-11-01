@@ -1,6 +1,6 @@
-"""FloodGauge concept media (TRL 3, constructable design FLG-DDR-003), built from the parametric model in cad/src/model.py.
+"""FloodGauge concept media (TRL 3, constructable design FLG-DDR-003), built from components(CHOSEN) of the kit 1.9 model in cad/src/model.py.
 
-Run from the repo root:  python cad/src/concept_media.py
+Run from the repo root:  python cad/src/concept_media.py [web]   (web: only media/model.glb and viewer.html)
 Proportions and main parts only; not for fabrication.
 
 Coordinates in mm. The street runs along Y. X runs across the street: road at X < 0,
@@ -13,37 +13,49 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / ".kit"))
 from build123d import Rot
 from concept import Part, render_all, human_figure, _render
 
-# Geometry comes from the parametric model (cad/src/model.py), so the media follow PARAMS.
+# Geometry comes from the kit 1.9 model (cad/src/model.py): components(CHOSEN) grouped by BOM group, so the media
+# draw the same parts as the drawings, the STEP files and the renders.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model import PARAMS as P, build_parts, bands, site  # noqa: E402
+from model import PARAMS as P, CHOSEN, components, site, fuse  # noqa: E402
 
 CURB_H = P["curb_h"]
 GREY = "#B8BEC6"
 CONCRETE = "#A8A29E"
 ROAD = "#4B5563"
 
-K = build_parts()
-B = bands()
-S = site()
+comps = components(CHOSEN)
+S = site()     # only the illustrative stormwater level is taken from here; the street comes from components()
 
+
+def grp(*groups, names=None, exclude=()):
+    sel = [q["shape"] for q in comps if q["kind"] != "context" and q["group"] in groups
+           and not q["name"].startswith(tuple(exclude)) and (names is None or q["name"].startswith(names))]
+    return fuse(sel)
+
+
+def ctx(prefix):
+    return fuse([q["shape"] for q in comps if q["kind"] == "context" and q["name"].startswith(prefix)])
+
+
+FILM = ("Marker film",)
 parts = [
-    Part("Existing road slab and gutter", S["road"], ROAD, None),
-    Part("Existing curb and sidewalk", S["walk"], CONCRETE, None),
-    Part("Existing catch basin and outlet pipe", S["basin"], "#9CA3AF", None),
-    Part("Existing grate", S["grate"], "#374151", None),
+    Part("Existing road slab and gutter", ctx("Road slab"), ROAD, None),
+    Part("Existing curb and sidewalk", ctx("Curb and sidewalk"), CONCRETE, None),
+    Part("Existing catch basin and outlet pipe", ctx("Catch basin"), "#9CA3AF", None),
+    Part("Existing grate", ctx("Grate"), "#374151", None),
     Part("Stormwater (illustrative level)", S["water"], "#3B82F6", None),
-    Part("Existing street pole, 60 mm", S["pole"] + S["sign"], GREY, None),
-    Part("FieldNode core (enclosure, LiFePO4, LoRaWAN)", K["node"], "#E5E7EB", 1, (-150, -500, 150)),
-    Part("FieldNode 6 W panel (part of item 1)", K["panel"], "#1E3A8A", None, (-150, -500, 350)),
-    Part("Street radar head, 60 GHz", K["street_head"], "#0F766E", 2, (-250, -300, 350)),
-    Part("Sensor arm, knee brace and pole bracket", K["arm"], "#D4A017", 3, (0, 0, 250)),
-    Part("Drain head, ultrasonic with wet probe", K["drain_head"], "#C2410C", 4, (-400, -500, 1650)),
-    Part("Stilling tube, 75 mm slotted PVC, and pipe clamps", K["tube"], "#F59E0B", 5, (-400, -500, 1400)),
-    Part("Sensor cables, M12", K["cables"], "#111827", 6, (250, -900, 0)),
-    Part("Surface cable covers and riser guard", K["conduit"], "#7C3AED", 7, (300, -600, 600)),
-    Part("Depth marker plate", K["marker"], "#F9FAFB", 8, (-300, -350, 0)),
-    Part("Depth bands, 150 to 300 mm (amber)", B["amber"], "#F59E0B", None, (-300, -350, 0)),
-    Part("Depth bands, 300 to 450 mm (red)", B["red"], "#DC2626", None, (-300, -350, 0)),
+    Part("Existing street pole, 60 mm", fuse([q["shape"] for q in comps if q["kind"] == "context" and q["name"].startswith(("Street pole", "Pole-top"))]), GREY, None),
+    Part("FieldNode core (enclosure, LiFePO4, LoRaWAN)", grp("node"), "#E5E7EB", 1, (-150, -500, 150)),
+    Part("FieldNode 6 W panel (part of item 1)", grp("panel"), "#1E3A8A", None, (-150, -500, 350)),
+    Part("Street radar head, 60 GHz", grp("street_head"), "#0F766E", 2, (-250, -300, 350)),
+    Part("Sensor arm, knee brace and pole bracket", grp("arm"), "#D4A017", 3, (0, 0, 250)),
+    Part("Drain head, ultrasonic with wet probe", grp("drain_head"), "#C2410C", 4, (-400, -500, 1650)),
+    Part("Stilling tube, 75 mm slotted PVC, and pipe clamps", grp("tube"), "#F59E0B", 5, (-400, -500, 1400)),
+    Part("Sensor cables, M12", grp("cables"), "#111827", 6, (250, -900, 0)),
+    Part("Surface cable covers and riser guard", grp("conduit"), "#7C3AED", 7, (300, -600, 600)),
+    Part("Depth marker plate", grp("marker", exclude=FILM), "#F9FAFB", 8, (-300, -350, 0)),
+    Part("Depth bands, 150 to 300 mm (amber)", grp("marker", names="Marker film, amber"), "#F59E0B", None, (-300, -350, 0)),
+    Part("Depth bands, 300 to 450 mm (red)", grp("marker", names="Marker film, red"), "#DC2626", None, (-300, -350, 0)),
 ]
 
 # Turn the scene 180 degrees about Z so the standard isometric camera looks from the road side,
@@ -55,8 +67,13 @@ for p in parts:
 person = human_figure(1750.0, x=-1000.0, y=300.0, z=CURB_H)
 
 if __name__ == "__main__":
+    if "web" in sys.argv[1:]:
+        # web model only: rewrites media/model.glb and media/viewer.html from the same parts (keeps the glb small)
+        from concept import export_web_model
+        print(export_web_model(parts, "media", title="FloodGauge: Street and drain level gauge concept"))
+        sys.exit(0)
     render_all(
-        parts, project="FloodGauge", title="Street and drain level gauge concept", dwg_no="FLG-DWG-010",
+        parts, project="FloodGauge", title="Street and drain level gauge concept", dwg_no="FLG-DWG-010", rev="P3",
         key_figures=[f"Street head: 60 GHz radar, lens {P['head_z'] / 1000:.1f} m above road (2.5 to 5.0 m per site)",
                      "Drain head: ultrasonic in 75 mm stilling tube",
                      "Alert bands: 150 mm and 300 mm of water",

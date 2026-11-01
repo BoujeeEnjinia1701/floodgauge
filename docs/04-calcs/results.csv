@@ -4,7 +4,7 @@ R2,"radar RSS ±6.5 mm, sum ±12.0 mm; ultrasonic variant ±27.0 mm",±10 mm,Met
 R3,continuous -1250 to -330 mm; wet probe at -310 mm,"50 mm above floor to 330 mm below road, drain-full above",Met on paper
 R4,±11.0 mm with NTC; ±19.7 mm without,±20 mm,Met on paper
 R5,60 s and 10 s schedule set in the sampling logic,60 s; 10 s in events,Met by design
-R6,worst 110 s without packet loss,"120 s, 95 % of events",Met on paper (private gateway)
+R6,"worst 110 s without packet loss at SF9; event-mode 95th percentile SF11 123 s, SF12 201 s","120 s, 95 % of events","Met on paper (private gateway, SF9 and SF10)"
 R7,"SF9 23.7 s/day; event 1 % met SF7 to SF10, not SF11 or SF12",1 % always; TTN 30 s/day normal,At risk
 R8,"68 days nominal, 47 days at -20 C",5 days at event sampling,Met on paper
 R9,potted head; transducer face seal IP67 only,"IP68, 2 m, 72 h",At risk
@@ -13,6 +13,8 @@ R11,"levels, status and battery only",no camera or microphone,Met by design
 R12,120 min on the surface route; no civil work,"120 min for the pilot surface route, no basin entry (90 min at permanent sites on the conduit route)",Met on paper
 R13,tape and radar dry-background survey; yearly marker check,±5 mm,Met on paper
 R14,FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C,-20 to 50 C,At risk
-R15,4.99 kg; twist factor 37 with the through-bolt,40 to 60 mm poles; 5 kg,Met on paper
+R15,"4.994 kg (margin 0.006 kg, inside the accuracy of the estimate); twist factor 1.8 on the through-bolt, 1.45 on friction (60 mm pole)",40 to 60 mm poles; 5 kg,At risk
 R16,$205.50 FloodGauge-specific; $344.50 with FieldNode,$160 FloodGauge-specific (value-engineering target),Over the value-engineering target by $45.50
 R17,JSON or CSV through the gateway,open format,Met by design
+PR-018,10 of 10 fixings within reach need a security tool,all fixings within reach,Met by design
+PR-019,"hat section 16 mm high, edges broken",16 mm or less,Met by design

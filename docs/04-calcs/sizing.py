@@ -1,4 +1,4 @@
-"""FloodGauge sizing calculations, FLG-CAL-001 v0.6 (TRL 3, constructable design, FLG-DDR-003).
+"""FloodGauge sizing calculations, FLG-CAL-001 v0.7 (TRL 3, constructable design, FLG-DDR-003; kit 1.9 model).
 
 Run from the repo root:  python docs/04-calcs/sizing.py
 Prints every number quoted in docs/04-calcs/01-sizing.md; each line carries a tag such as [B2]
@@ -77,12 +77,12 @@ BAND_PRELOAD, MU = 1000.0, 0.30    # N per band clamp (FND-CAL-001 assumption), 
 HANG = 490.0                  # N, a 50 kg person hanging on the arm tip (misuse case)
 VEH_H = (4.0, 4.3)            # m, tall vehicle envelope (typical legal limits; confirm locally)
 VEH_MARGIN = 0.3              # m, clearance margin above the vehicle envelope (assumed)
-BOLT_AS, BOLT_FUB = 36.6, 700.0    # mm2, MPa: M8 stainless A4-70 through-bolt (DDR-002)
+BOLT_AS, BOLT_FUB, BOLT_FY = 36.6, 800.0, 600.0    # mm2, MPa: M8 stainless A4-80 through-bolt (A4-70 in DDR-002; class raised under FLG-DDR-004 F2)
 POLE_T, POLE_FU = 2.5, 360.0       # mm, MPa: pole wall and steel strength at the bolt holes (assumed)
 CABLE_PF = 100.0              # pF/m, outdoor multicore cable (assumed)
 CABLE_KG = 0.07               # kg/m
 
-print("FloodGauge sizing, FLG-CAL-001 v0.6")
+print("FloodGauge sizing, FLG-CAL-001 v0.7")
 print(f"Geometry from cad/src/model.py: lens {P['head_z']:.0f} mm above the road, {P['head_offset']:.0f} mm past the curb face; "
       f"tube {D['tube_len']:.0f} mm, ID {D['tube_id']:.0f} mm")
 
@@ -228,6 +228,21 @@ for label, net in (("private gateway", NET_PRIVATE), ("city or public server", N
         xs = [latency(net, slow) for _ in range(N)]
         tag("F1", f"{label}, {'slow rise from normal mode' if slow else 'already in event mode'}: "
                   f"mean {sum(xs) / N:.0f} s, 95th percentile {pct(xs, 0.95):.0f} s, max of {N:,} {max(xs):.0f} s")
+def latency_sf(sf, net, slow):
+    a = air[sf]
+    off = a / DUTY - a
+    sample = random.uniform(0, SAMPLE_NORMAL if slow else SAMPLE_FAST)
+    p_off = a / (NORMAL_REPORT_S if slow else EVENT_REPORT_S) / DUTY
+    wait = random.uniform(0, off) if random.random() < p_off else 0.0
+    return sample + CONFIRM * SAMPLE_FAST + WAKE + a + wait + random.uniform(*net)
+
+
+lat_sf = {}
+for sf in (9, 10, 11, 12):
+    xs = [latency_sf(sf, NET_PRIVATE, False) for _ in range(N // 4)]
+    lat_sf[sf] = pct(xs, 0.95)
+tag("F4", "95th percentile in event mode on a private gateway by spreading factor (independent review): " + ", ".join(f"SF{k} {v:.0f} s" for k, v in lat_sf.items())
+    + "; the 120 s target is met to SF10 and not at SF11 or SF12")
 worst = SAMPLE_NORMAL + CONFIRM * SAMPLE_FAST + WAKE + air[9] + off9 + NET_PRIVATE[1]
 tag("F2", f"deterministic worst case without a lost packet, private gateway: {worst:.0f} s "
           f"(60 + 20 + {WAKE + air[9]:.1f} + {off9:.1f} duty-cycle wait + {NET_PRIVATE[1]} s)")
@@ -261,11 +276,20 @@ tag("H1", f"wind along the street at 35 m/s (q {Q_WIND:.0f} Pa): arm {f_arm:.1f}
 tag("H2", f"two band clamps at {BAND_PRELOAD:.0f} N preload, friction {MU}: twist capacity {t_cap:.1f} N m, factor {t_cap / torque:.2f} on friction alone")
 f_shear = 0.6 * BOLT_FUB * BOLT_AS
 f_bear = 2.5 * POLE_FU * P["bolt_d"] * POLE_T
-f_bolt = min(f_shear, f_bear)
-t_bolt = f_bolt * P["pole_od"] / 1000
-tag("H2b", f"M8 through-bolt across the street through the bracket plate, a {D['spacer_len']:.1f} mm spacer and the pole: shear {f_shear / 1000:.1f} kN per plane, "
-           f"pole wall bearing {f_bear / 1000:.1f} kN ({POLE_T} mm wall assumed); couple across the {P['pole_od']:.0f} mm pole {t_bolt:.0f} N m, "
-           f"factor {t_bolt / torque:.0f} against wind twist")
+# The bolt is loaded where the plate presses on it: sideways, 51 mm from the pole axis, through the spacer, so it bends as a short
+# cantilever out of the near pole wall (independent review of FLG-STM-001, S11); the stress-area diameter is used for the section.
+d_s = math.sqrt(4 * BOLT_AS / math.pi)
+z_bolt = math.pi * d_s ** 3 / 32
+l_bolt = D["spacer_len"] + P["bplate"][0] / 2
+f_bend = BOLT_FY * z_bolt / l_bolt
+lev_bolt = P["pole_x"] - (D["plate_rear_x"] + D["plate_front_x"]) / 2
+f_bolt = min(f_shear, f_bear, f_bend)
+t_bolt = f_bolt * lev_bolt / 1000
+t_fric40 = 2 * MU * 2 * BAND_PRELOAD * 20.0 / 1000
+tag("H2b", f"M8 A4-80 through-bolt across the street through the bracket plate, a {D['spacer_len']:.1f} mm spacer and the pole: it bends as a cantilever "
+           f"{l_bolt:.1f} mm long, yield at {f_bend:.0f} N (shear {f_shear / 1000:.1f} kN and pole wall bearing {f_bear / 1000:.1f} kN with a {POLE_T} mm wall assumed do not govern); "
+           f"the plate load acts {lev_bolt:.0f} mm from the pole axis, so it resists {t_bolt:.0f} N m, factor {t_bolt / torque:.1f} against wind twist")
+tag("H2c", f"on a 40 mm pole (the smallest R15 allows) friction alone gives {t_fric40:.1f} N m, factor {t_fric40 / torque:.2f}; the through-bolt must carry the twist there")
 m_tip = HANG * (xt - D["head_x"]) / 1000
 arm_I = (P["arm_sq"] ** 4 - (P["arm_sq"] - 2 * P["arm_wall"]) ** 4) / 12
 z_arm = arm_I / (P["arm_sq"] / 2)
@@ -275,10 +299,18 @@ m_clamp = HANG * (D["plate_front_x"] - D["head_x"]) / 1000
 h_pull = m_clamp / (lever / 1000)                          # arm pull at the cleats = brace push across, horizontal
 f_br = h_pull * math.sqrt(2)
 bI = (P["brace_sq"] ** 4 - (P["brace_sq"] - 2 * P["brace_wall"]) ** 4) / 12
-pcr = math.pi ** 2 * E_AL * bI / D["brace_pins"] ** 2
+b_area = P["brace_sq"] ** 2 - (P["brace_sq"] - 2 * P["brace_wall"]) ** 2
+b_r = math.sqrt(bI / b_area)
+slender = D["brace_pins"] / b_r
+pcr_euler = math.pi ** 2 * E_AL * bI / D["brace_pins"] ** 2
+# L/r is about 37, below the limit for Euler buckling, so the Johnson (inelastic) formula is used; the pin bearing in the thin walls governs
+pcr_j = b_area * SY_AL * (1 - SY_AL / (4 * math.pi ** 2 * E_AL) * slender ** 2)
+bear_pin = 2 * 2.5 * 240.0 * 6.0 * P["brace_wall"]
+pcr = min(pcr_j, bear_pin)
 tag("H3", f"50 kg hanging on the head: arm moment at the top brace pin {m_tip:.0f} N m, stress {sig:.0f} MPa against {SY_AL:.0f} MPa "
-          f"(factor {SY_AL / sig:.1f}, {P['arm_wall']} mm wall); brace force {f_br:.0f} N against buckling {pcr:,.0f} N "
-          f"({P['brace_sq']:.0f} x {P['brace_sq']:.0f} x {P['brace_wall']} mm, {D['brace_pins']:.0f} mm between pins)")
+          f"(factor {SY_AL / sig:.1f}, {P['arm_wall']} mm wall); brace force {f_br:.0f} N against {pcr:,.0f} N "
+          f"({P['brace_sq']:.0f} x {P['brace_sq']:.0f} x {P['brace_wall']} mm, {D['brace_pins']:.0f} mm between pins, L/r {slender:.0f}: Johnson buckling {pcr_j:,.0f} N, "
+          f"pin bearing {bear_pin:,.0f} N; the Euler value {pcr_euler:,.0f} N is not valid here)")
 tag("H4", f"arm pull at the cleats {h_pull:.0f} N, carried by the upper band against {2 * BAND_PRELOAD:.0f} N band capacity "
           f"(factor {2 * BAND_PRELOAD / h_pull:.1f}); slip resistance {2 * MU * 2 * BAND_PRELOAD:.0f} N against {HANG + 30:.0f} N down")
 M6_AS, M6_FUB, AL_FU = 20.1, 700.0, 240.0
@@ -345,6 +377,14 @@ tag("M1", f"BOM {len(rows)} lines, all priced: {priced}; FloodGauge-specific (li
 big = sorted(((line(r), r["item"]) for r in rows if not r["item"].startswith("1 ")), reverse=True)[:4]
 tag("M2", "main cost drivers: " + "; ".join(f"{n} ${c:.2f}" for c, n in big))
 
+
+# ------------------------------------------------------------------ N. Tamper resistance and cover profile (PR-018, PR-019)
+print("\nN. Tamper resistance and cover profile (PR-018, PR-019)")
+n_anchor_nuts, n_band_screws = 8, 2
+tag("N1", f"PR-018: fixings within reach of the sidewalk: {n_anchor_nuts} masonry anchors with snake-eye security nuts and {n_band_screws} marker band clamp screws "
+          f"with pin-Torx heads, {n_anchor_nuts + n_band_screws} of {n_anchor_nuts + n_band_screws} need a security tool (BOM items 7, 8 and 10)")
+tag("N2", f"PR-019: surface covers are a {P['hat'][2]:.0f} mm hat section {P['hat'][1]:.0f} mm high (target 16 mm or less); the model breaks every exposed edge (cad_check)")
+
 # ------------------------------------------------------------------ status table
 print("\n[S] Requirement status")
 status = [
@@ -353,7 +393,7 @@ status = [
     ("R3", "Met on paper", f"continuous {P['basin_floor'] + 50:.0f} to {D['dh_top_level']:.0f} mm; wet probe at {D['probe_level']:.0f} mm", "50 mm above floor to 330 mm below road, drain-full above"),
     ("R4", "Met on paper", f"±{rss_d:.1f} mm with NTC; ±{rss_du:.1f} mm without", "±20 mm"),
     ("R5", "Met by design", "60 s and 10 s schedule set in the sampling logic", "60 s; 10 s in events"),
-    ("R6", "Met on paper (private gateway)", f"worst {worst:.0f} s without packet loss", "120 s, 95 % of events"),
+    ("R6", "Met on paper (private gateway, SF9 and SF10)", f"worst {worst:.0f} s without packet loss at SF9; event-mode 95th percentile SF11 {lat_sf[11]:.0f} s, SF12 {lat_sf[12]:.0f} s", "120 s, 95 % of events"),
     ("R7", "At risk", f"SF9 {air[9] * 86400 / NORMAL_REPORT_S:.1f} s/day; event 1 % met SF7 to SF10, not SF11 or SF12", "1 % always; TTN 30 s/day normal"),
     ("R8", "Met on paper", f"{aut:.0f} days nominal, {aut * FND_COLD:.0f} days at -20 C", "5 days at event sampling"),
     ("R9", "At risk", "potted head; transducer face seal IP67 only", "IP68, 2 m, 72 h"),
@@ -363,10 +403,12 @@ status = [
      f"{R12_PILOT_MIN} min for the pilot surface route, no basin entry (90 min at permanent sites on the conduit route)"),
     ("R13", "Met on paper", "tape and radar dry-background survey; yearly marker check", "±5 mm"),
     ("R14", "At risk", "FieldNode R2/R3 heat (inherited); A02YYUW rated -15 to 60 C", "-20 to 50 C"),
-    ("R15", "Met on paper" if tot <= 5.0 else "Not met", f"{tot:.2f} kg; twist factor {t_bolt / torque:.0f} with the through-bolt", "40 to 60 mm poles; 5 kg"),
+    ("R15", ("At risk" if 5.0 - tot < 0.05 else "Met on paper") if tot <= 5.0 else "Not met", f"{tot:.3f} kg (margin {5.0 - tot:.3f} kg, inside the accuracy of the estimate); twist factor {t_bolt / torque:.1f} on the through-bolt, {t_cap / torque:.2f} on friction (60 mm pole)", "40 to 60 mm poles; 5 kg"),
     ("R16", "Within the value-engineering target" if spec <= budget else f"Over the value-engineering target by ${spec - budget:.2f}",
      f"${spec:.2f} FloodGauge-specific; ${total:.2f} with FieldNode", f"${budget:.0f} FloodGauge-specific (value-engineering target)"),
     ("R17", "Met by design", "JSON or CSV through the gateway", "open format"),
+    ("PR-018", "Met by design", f"{n_anchor_nuts + n_band_screws} of {n_anchor_nuts + n_band_screws} fixings within reach need a security tool", "all fixings within reach"),
+    ("PR-019", "Met by design", f"hat section {P['hat'][1]:.0f} mm high, edges broken", "16 mm or less"),
 ]
 with (ROOT / "docs" / "04-calcs" / "results.csv").open("w", newline="") as f:
     w = csv.writer(f)

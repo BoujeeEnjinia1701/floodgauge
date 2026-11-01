@@ -3,9 +3,9 @@ doc_id: FLG-DEC-001
 title: FloodGauge design decisions register
 project: FloodGauge
 doc_type: Design decisions register
-version: "0.3"
+version: "0.4"
 status: Draft
-date: '2026-10-02'
+date: 2026-10-31
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -21,6 +21,10 @@ revisions:
     date: '2026-10-02'
     author: Amish Chadha
     change: "Value engineering restated with the priced tamper-resistant fixings (USD 205.50, USD 45.50 over the target)"
+  - version: "0.4"
+    date: 2026-10-31
+    author: Amish Chadha
+    change: "Kit 1.9.1 upgrade: concept choice (A, B or the hybrid) and two option C and B items proposed to Amish; two items to confirm; the float-shell fix and the model detail change recorded as decided under the standing instruction; requirement references renamed to PRS"
 ---
 
 # FloodGauge design decisions register
@@ -29,7 +33,14 @@ Every design decision still to be made, and every decision made, in one place. E
 
 ## Open decisions
 
-None. All open decisions were decided on 2026-10-02.
+| # | Decision needed | Options | Recommendation | Affects in the build | Source |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Which concept to take forward: option A (radar over the gutter and ultrasonic in a stilling tube, the current design) or option B (hydrostatic pressure transducers), or the hybrid of A's radar with B's hung transducer in the basin. Option C is dropped for missing the accuracy target | A, B, A with B's basin transducer, or C with a 15 mm reed pitch | Both A and B go to Amish without a pick, because B leads by 6.7 %, inside the 10 % band; the hybrid is the idea worth testing at TRL 4. **Proposed, awaiting Amish** | The whole build plan if B is chosen (no arm, bracket or through-bolt) | FLG-OPT-001; FLG-DDR-004 |
+| 2 | Whether to accept the pitch of C's reed chain at 25 mm (plus or minus 12.5 mm) against the 10 mm street target, or cut it to about 15 mm | 25 mm, 15 mm | Drop C unless 15 mm is accepted. **Proposed, awaiting Amish** | Only option C | FLG-OPT-001 |
+| 3 | The costs of options B and C are estimates, not supplier prices; whether to quote the transducers before choosing | Quote now, quote after the choice | Quote after the choice if B or the hybrid is picked. **Proposed, awaiting Amish** | The cost line of B | FLG-OPT-001 |
+| 4 | Whether to add a second through-bolt or use an M10 bolt for poles near 40 mm, where friction alone gives 0.97 against the wind twist, and how to recover the mass (the pole is 6 g under 5 kg) | Keep M8 A4-80 (factor 1.8); second M8 bolt; M10 bolt; lighter bracket plate | Keep M8 A4-80 for 60 mm poles and decide for small poles at the design review. **Proposed, awaiting Amish** | Through-bolt, spacer and plate holes; mass on the pole | FLG-DDR-004 F2; FLG-STM-001 S10 |
+
+All other decisions were decided on 2026-10-02.
 
 ## To confirm when parts are bought
 
@@ -37,12 +48,15 @@ None. All open decisions were decided on 2026-10-02.
 | --- | --- | --- | --- |
 | 1 | Radar module data sheet: accuracy, current, beam width with the lens, price and 60 GHz certification for fixed outdoor use in the pilot country | The depth error, energy and false-reading figures assume them | FLG-CAL-001, Table 1 |
 | 2 | The radar housing's lid boss pattern and a base that can take a 46 mm window | Sets the four M4 holes in the head plate and the lens fixing | FLG-DDR-003, P4 |
-| 3 | The ranger's transducer face seal (IP67 only) and potting compatibility | R9 is at risk on the face seal | FLG-REQ-001, R9 |
+| 3 | The ranger's transducer face seal (IP67 only) and potting compatibility | R9 is at risk on the face seal | FLG-PRS-001, PR-009 (R9) |
 | 4 | Band clamps that close on a 60 mm pole with the V-block and plate inside (about 330 to 380 mm round for the bracket and FieldNode, about 450 mm for the marker), and the torque that gives 1,000 N of preload | The twist and pull figures assume 1,000 N per band | FLG-CAL-001, H2 and H4 |
 | 5 | The site pole's wall thickness (2.5 mm assumed) and the owner's permission to drill it | Bearing strength of the through-bolt | FLG-CAL-001, H2b |
 | 6 | A grate opening within 70 mm of the grate's curb edge on the chosen cover line, and the curb height (150 mm assumed) | The cable comes up through that opening; the curb cover length follows the curb | FLG-DDR-003, P7 and P8 |
 | 7 | The 75 mm socket coupling fits the chosen pipe, and the stand-off pipe clamps reach 90 mm from the wall | Sets the drain head fit and the tube position | FLG-DDR-003, P9 and P10 |
 | 8 | Outdoor cable mass and diameter (0.07 kg/m, 10 mm assumed) | Mass margin and the fit inside the 16 mm covers | FLG-CAL-001, I1 |
+| 9 | A pressure transducer class, full-scale range, vent method and price (option B or the hybrid) | The 8.7 mm street error and the dry-vent assumption rest on a 0.25 % of full scale class | FLG-STM-001, B2 and B3 |
+| 10 | A reed switch data sheet (operate range, hysteresis) and a hollow float moulding route (option C) | Closing height and the float weight of 29 g depend on them | FLG-STM-001, C1 to C4 |
+| 11 | Price and supplier of the M8 x 100 A4-80 partial-thread bolt (BOM line 3 text changed from A4) | The line price was set for an unspecified A4 bolt | FLG-DDR-004, F2 |
 
 ## Value engineering
 
@@ -77,4 +91,7 @@ Savings worth trying:
 | 2026-10-02 | Side gland on the radar head and the street cable route closed as adopted with item 1 (FLG-DDR-003, P5) | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-26, item 3; FLG-DDR-003, P5 |
 | 2026-10-02 | Clear lid window, name plate, status light and cover ridges are render detail only; no clear-lid node is raised with FieldNode | Amish: "i approve your recommendations for all 555 open decisions." | REVIEW.md, 2026-09-26, item 4 |
 | 2026-10-02 | Alert governance: the partner city's emergency management office owns the alerts. FloodGauge publishes levels and band crossings only, the city decides who acts, and residents opt in and out through the city's existing alert channel, so the project holds no resident contact data | Amish: "i approve your recommendations for all 555 open decisions." | FLG-PRC-001, open questions |
+| 2026-10-31 | Hollow sealed floats in option C: the first model's solid ring floats sank (44.4 g against 33.7 g of buoyancy, and 106.5 g against 97.4 g); the street float grows to 42 mm OD and both become 1.6 mm sealed shells filled with closed-cell foam, with a 5 mm ring magnet | Standing instruction of 2026-10-23 (fix to a failed STEM-check detail that keeps the working principle) | FLG-DDR-004, F1; FLG-STM-001 C1 and C2 |
+| 2026-10-31 | Through-bolt class raised from A4-70 to A4-80 after the independent STEM review showed the bolt bends (factor 1.8, not 37); PR-015 restated at risk and PR-006 limited to SF9 and SF10 | Standing instruction of 2026-10-23 (fix keeping the working principle, no change of dimension or mass) | FLG-DDR-004, F2 and Part 2c; FLG-STM-001 S11 |
+| 2026-10-31 | The kit 1.9 model draws every bolt, nut, washer and plug; no design dimension changes, and the cable centre lines now end in the plug moulding (street cable 2,619 mm, drain cable 4,310 mm, both still inside their cables with loops) | Modelling detail under the kit 1.9.1 upgrade; recorded here because the brief asks that nothing change unrecorded | FLG-DDR-004, Part 3; FLG-CAL-001 J |
 | 2026-10-02 | Tamper-resistant screw heads and nuts on everything within reach of the sidewalk (marker bands, covers, riser guard and anchors) for the pilot; the node stays at 3.4 m as designed | Amish: "i approve your recommendations for all 555 open decisions." | FLG-PRC-001, open questions |

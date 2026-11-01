@@ -6,6 +6,10 @@ area: Smart Cities
 trl: 3                   # Technology Readiness Level, see .kit/STANDARDS.md section 9
 trl_target: 3
 design_state: constructable   # STANDARDS section 18; FLG-DDR-003
+stage: P3                # pipeline stage, STANDARDS section 19; P0 to P3 reached 2026-10-31 (kit 1.9.1 upgrade)
+stem_check: open         # FLG-STM-001 v0.1: 0 fails; 17 plausible rows (S2, S3, S6, S10 to S12, S15, S17 to S19, S21, S23 and the B and C rows) wait on data sheets, the weighed mass and the TRL 4 tests; two fixes made under the standing instruction (FLG-DDR-004 F1, F2)
+concept_options: [A, B, C]   # FLG-OPT-001
+# concept_chosen: left unset; FLG-OPT-001 proposes A or B to Amish (within 10 %), awaiting Amish
 trl_evidence:
   - docs/01-problem.md
   - docs/02-concept.md
@@ -15,8 +19,24 @@ trl_evidence:
   - docs/decisions/0003-design-for-construction.md
   - docs/04-calcs/01-sizing.md
   - docs/04-calcs/sizing.py
+  - docs/01b-stem-check.md
+  - docs/04-calcs/stem_check.py
+  - docs/04-calcs/stem_results.csv
+  - docs/02a-concept-options.md
+  - docs/03a-user-requirements.md
+  - docs/03b-traceability.md
+  - docs/07-regulatory.md
+  - docs/08-feasibility.md
+  - docs/09-risk.md
+  - docs/10-market.md
+  - docs/11-plan.md
+  - docs/decisions/0004-concept-options.md
   - cad/src/model.py
-  - cad/step/floodgauge-assembly.step
+  - cad/src/options_bc.py
+  - cad/fidelity.json
+  - cad/step/A-assembly.step
+  - cad/step/B-assembly.step
+  - cad/step/C-assembly.step
   - cad/drawings/FLG-DWG-001.svg
   - cad/drawings/FLG-DWG-001.pdf
   - bom/bom.csv

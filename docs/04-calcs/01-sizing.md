@@ -3,9 +3,9 @@ doc_id: FLG-CAL-001
 title: FloodGauge sizing calculations
 project: FloodGauge
 doc_type: Calculation
-version: "0.6"
+version: "0.7"
 status: Draft
-date: '2026-10-02'
+date: 2026-10-31
 author: Amish Chadha
 license: CERN-OHL-S-2.0
 revisions:
@@ -33,6 +33,10 @@ revisions:
   date: '2026-10-02'
   author: Amish Chadha
   change: "Approved follow-ups: sizing.py rerun with the 120 min pilot R12 target; tamper-resistant fixings priced (cost USD 205.50, USD 45.50 over the target); drain cable slack loop modelled and checked; FieldNode inputs corrected to USD 139.00 and 2.45 kg"
+- version: "0.7"
+  date: 2026-10-31
+  author: Amish Chadha
+  change: "Kit 1.9.1 upgrade: sizing.py rerun on the kit 1.9 model (171 parts with every fastener); masses and cable runs now measured on it; requirements renamed to PRS numbering (R numbers kept as Was); PR-018 and PR-019 added (section N); STEM check cross-references"
 ---
 
 # FloodGauge sizing calculations
@@ -43,7 +47,7 @@ This v0.4 checks the constructable design of FLG-DDR-003 (pole bracket on V-bloc
 
 ## Scope and method
 
-The note checks every requirement in FLG-REQ-001 v0.6 against the design in FLG-PRC-001 v0.6 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P4. Masses of the made parts and the cable runs are measured on the model. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
+The note checks every requirement in FLG-PRS-001 v0.9 (requirements R1 to R17 are PR-001 to PR-017 there) against the design in FLG-PRC-001 v0.6 and the parametric model `cad/src/model.py`. The script imports the model's `PARAMS` and derived dimensions, so the head height, arm, tube, cable runs and marker used here are the ones in the STEP files and in drawing FLG-DWG-001 Rev P6. Masses of the made parts and the cable runs are measured on the model. It also reads `bom/bom.csv` and `budget_usd` in `project.yaml`, and writes the status table to `docs/04-calcs/results.csv`. Run it from the repo root with `python docs/04-calcs/sizing.py`.
 
 The design case is a street with a 150 mm curb and a catch basin 1.3 m deep beside a 60 mm street pole 4.9 m tall above the sidewalk, with tall vehicles in the curb lane, air from -20 to 50 °C, a private LoRaWAN gateway (TwinKit) on EU868, and the FieldNode core as costed and sized in its own repo (FND-CAL-001).
 
@@ -64,7 +68,7 @@ The design case is a street with a 150 mm curb and a catch basin 1.3 m deep besi
 | Network | Gateway, network server and alert service 1 to 4.7 s (TwinKit worst 4.7 s); 2 to 10 s on a city or public server; 1 % uplink loss | TWK-CAL-001; assumed for public servers |
 | Wind and loads | 35 m/s gust (q = 750 Pa); drag 2.0 on square tubes and 1.2 on the head; 6063-T6 class aluminium, E = 69 GPa, yield 214 MPa; band clamp preload 1,000 N, friction 0.3; misuse case of a 50 kg person hanging on the head | As FND-CAL-001; handbook values |
 | Vehicles | Tall vehicles 4.0 to 4.3 m at the curb, 0.3 m clearance margin | Typical legal height limits; to confirm with the road authority |
-| Through-bolt | M8 stainless A4-70, stress area 36.6 mm², shear 0.6 f_ub; pole wall 2.5 mm, f_u 360 MPa, bearing 2.5 f_u d t | Handbook values; pole wall assumed |
+| Through-bolt | M8 stainless A4-80 (A4-70 before v0.7), stress area 36.6 mm², proof stress 600 MPa in bending as a cantilever, shear 0.6 f_ub; pole wall 2.5 mm, f_u 360 MPa, bearing 2.5 f_u d t | Handbook values; pole wall assumed |
 | Cables | 100 pF/m and 0.07 kg/m for outdoor 5-core cable | Assumed |
 
 ## A. Geometry and range (R1, R3)
@@ -123,8 +127,8 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | City or public server | Slow rise from normal mode | 58 s | 85 s | 134 s |
 | City or public server | Already in event mode | 38 s | 55 s | 89 s |
 
-- **R6 is met on paper.** The 95th percentile is 82 s on a private gateway and 85 s on a city server, against 120 s. The deterministic worst case without a lost packet is 110 s (60 + 20 + 1.2 + 24.4 + 4.7 s) [F2]; only a lost packet pushes an event past 120 s.
-- **Depth at alert.** Water rising at 20 mm/min adds 37 mm between the crossing and the alert; at 100 mm/min, when the gauge is already sampling every 10 s, it adds 101 mm in 60 s [F3]. The 150 mm band therefore warns at roughly 190 to 250 mm in a fast flood. The partner city may want the first band lower for that reason.
+- **R6 is met on paper at SF9 and SF10.** The 95th percentile is 82 s on a private gateway and 85 s on a city server, against 120 s. The deterministic worst case without a lost packet is 110 s (60 + 20 + 1.2 + 24.4 + 4.7 s) [F2]; only a lost packet pushes an event past 120 s. The independent review pointed out that this holds only to SF10: in event mode on a private gateway the 95th percentile is 71 s at SF10, 123 s at SF11 and 201 s at SF12 [F4], so slow spreading factors need a shorter report interval or a nearer gateway (as for R7).
+- **Depth at alert.** Water rising at 20 mm/min adds 37 mm between the crossing and the alert; at 100 mm/min, when the gauge is already sampling every 10 s, it adds 101 mm in 60 s [F3]. The first alert band (100 mm, set on 2026-10-02) therefore warns at roughly 140 to 200 mm in a fast flood; the 150 mm band warns at roughly 190 to 250 mm.
 - The TRL 2 figure of about 70 s typical and 110 s worst stands; the new 95th percentile is the figure R6 asks for.
 
 ## G. False readings (R10)
@@ -137,19 +141,22 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 - **Load path (FLG-DDR-003).** The arm is held between two angle cleats on a 3 mm bracket plate that sits on the pole on two V-blocks and two band clamps 400 mm apart; a 25 x 25 x 1.6 mm brace is pinned between a clip under the arm and a clip on the plate, 358 mm between pins at 45°. The arm carries pull into the cleats and the brace pushes on the plate above the lower band.
 - **Wind twist.** Wind along the street at 35 m/s puts 43.0 N on the arm, 6.2 N on the head and 13.4 N on the brace, twisting the arm about the pole with 24.8 N·m [H1]. Two band clamps at 1,000 N preload hold 36.0 N·m by friction, a factor of only 1.45 [H2]. A twisted arm moves the head along the street, not up or down, so it does not bias the depth.
-- **Anti-rotation bolt.** The M8 A4-70 through-bolt now runs across the street through the bracket plate, a 20.2 mm spacer and both pole walls (a band clamp cannot take a bolt). It carries 15.4 kN in shear per plane; the pole wall bears 18.0 kN with an assumed 2.5 mm wall. Acting as a couple across the 60 mm pole it resists 922 N·m, a factor of 37 against the wind twist [H2b]. Drilling the pole needs the asset owner's permission.
-- **Misuse.** A 50 kg person hanging on the head gives 181 N·m at the top brace pin and 60 MPa in the 1.6 mm arm wall against 214 MPa (factor 3.6); the brace carries 1,504 N against a buckling load of 73,043 N [H3]. The arm pulls on the cleats with 1,063 N, carried by the upper band against 2,000 N (factor 1.9), and 1,200 N of slip resistance holds 520 N down [H4].
+- **Anti-rotation bolt.** The M8 through-bolt runs across the street through the bracket plate, a 20.2 mm spacer and both pole walls (a band clamp cannot take a bolt). Version 0.6 treated it as a couple across the full 60 mm pole (922 N·m, a factor of 37); the independent review of the STEM check showed that is the wrong load path. The wind twist presses the plate sideways on the bolt, 52 mm from the pole axis, so the bolt bends as a 21.7 mm cantilever out of the near pole wall. In class A4-80 stainless (proof stress 600 MPa) it yields at 862 N, which resists 45 N·m, a factor of 1.8 against the 24.8 N·m wind twist; shear (17.6 kN) and pole wall bearing (18.0 kN with an assumed 2.5 mm wall) do not govern [H2b]. The class was raised from A4-70 (33 N·m, factor 1.3) under FLG-DDR-004 F2. On a 40 mm pole friction alone gives 24.0 N·m, a factor of only 0.97, so there the through-bolt carries the twist [H2c]. Drilling the pole needs the asset owner's permission.
+- **Misuse.** A 50 kg person hanging on the head gives 181 N·m at the top brace pin and 60 MPa in the 1.6 mm arm wall against 214 MPa (factor 3.6); the brace carries 1,504 N against 11,520 N, set by bearing in its 1.6 mm walls at the pins; Johnson buckling gives 28,533 N (L/r is 37, so the Euler load of 73,043 N used in v0.6 does not apply) [H3]. The arm pulls on the cleats with 1,063 N, carried by the upper band against 2,000 N (factor 1.9), and 1,200 N of slip resistance holds 520 N down [H4].
 - **Fixings.** M6 A4-70 bolts carry 8.4 kN per shear plane: the arm cleat joint (two bolts in double shear) holds 34 kN and the 1.6 mm arm walls 23.0 kN in bearing against the 1.06 kN pull; each brace pin in double shear holds 16.9 kN against 1.50 kN [H5].
 
 ## I. Mass on the pole (R15)
 
-- **Items.** FieldNode 2.45 kg (its constructable design, FND-BLD-001); from the model: bracket plate 0.27 kg, V-blocks 0.14 kg, cleats 0.05 kg, brace clips 0.07 kg, arm 0.47 kg, brace 0.15 kg, head plate 0.08 kg, band clamps 0.04 kg, through-bolt and spacer 0.05 kg, M6 fixings, sleeves, pins and head screws 0.27 kg, marker plate 0.21 kg and its band clamps 0.06 kg; radar head 0.25 kg (assumed); street cable 0.21 kg (3 m); drain cable on the pole 0.22 kg [I1].
-- **Total.** 4.99 kg against 5.0 kg, a margin of 0.01 kg (v0.3: 4.74 kg) [I2]. R15 is met on paper, with a margin within the accuracy of the estimate; the arm and brace walls went from 2.0 to 1.6 mm and the bracket plate has two windows to hold it. The riser guard and the three covers (2.00 kg) stand on the sidewalk and are not carried by the pole. Weighing the prototype is a TRL 4 check (FLG-DEC-001, open decision 3).
+- **Items.** FieldNode 2.45 kg (its constructable design, FND-BLD-001); from the model: bracket plate 0.27 kg, V-blocks 0.14 kg, cleats 0.05 kg, brace clips 0.07 kg, arm 0.46 kg, brace 0.15 kg, head plate 0.08 kg, band clamps 0.04 kg, through-bolt and spacer 0.06 kg, M6 fixings, sleeves, pins and head screws 0.27 kg, marker plate 0.21 kg and its band clamps 0.06 kg; radar head 0.25 kg (assumed); street cable 0.21 kg (3 m); drain cable on the pole 0.22 kg [I1].
+- **Total.** 4.994 kg against 5.0 kg, a margin of 0.006 kg or 0.1 % (v0.3: 4.74 kg) [I2]. R15 is met on paper, with a margin within the accuracy of the estimate; the arm and brace walls went from 2.0 to 1.6 mm and the bracket plate has two windows to hold it. The riser guard and the three covers (2.00 kg) stand on the sidewalk and are not carried by the pole. Weighing the prototype is a TRL 4 check (FLG-DEC-001, open decision 3).
 
 ## J. Cables and ports (R11 context)
 
-- **Street cable.** Measured along its real route on the model (from the head's side gland along the arm, down the pole outside the band clamps and up to port A under the FieldNode box), the run is 2,641 mm with the FieldNode centre at 3.4 m; with 300 mm of drip loops it fits a 3 m cable, and the I2C bus is about 350 pF against 400 pF [J1]. With the node at 3.0 m the same route needed 3.34 m with loops, which is why the node moved up (FLG-DDR-003, P6).
-- **Drain cable.** Up through the grate opening, under the three covers, up the riser guard and the pole to port B, the run is 4,335 mm; with 500 mm of loops it fits the 5 m cable, which carries UART and the analog wet probe [J2].
+In v0.7 the model draws each cable ending in its plug moulding 45 mm above the node base, which shortens the street run from 2,641 to 2,619 mm and the drain run from 4,335 to 4,310 mm; no design dimension changed (FLG-DDR-004, Part 3).
+
+
+- **Street cable.** Measured along its real route on the model (from the head's side gland along the arm, down the pole outside the band clamps and up to port A under the FieldNode box), the run is 2,619 mm with the FieldNode centre at 3.4 m; with 300 mm of drip loops (2.92 m) it fits a 3 m cable, and the I2C bus is about 350 pF against 400 pF [J1]. With the node at 3.0 m the same route needed 3.34 m with loops, which is why the node moved up (FLG-DDR-003, P6).
+- **Drain cable.** Up through the grate opening, under the three covers, up the riser guard and the pole to port B, the run is 4,310 mm; with 500 mm of loops (4.81 m) it fits the 5 m cable, which carries UART and the analog wet probe [J2].
 - **Ports.** The street head uses port A at 3.3 V (I2C) and the drain head port B at 5 V (UART plus the analog pin), consistent with FieldNode's one switched rail per port [J3].
 
 ## K. Submersion (R9)
@@ -166,6 +173,11 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 
 - The BOM has 10 lines, all priced. Value-engineering target: USD 160. Estimated cost of the constructable design: USD 205.50 for the FloodGauge-specific parts (lines 2 to 10), USD 45.50 over the target; with the USD 139.00 FieldNode core (its constructable design), a complete gauge costs USD 344.50 [M1]. The pole bracket, cleats, clips, head plate and their fixings (line 3, USD 20.00 to 35.00), the three covers and riser guard (line 7, USD 14.00 to 26.00), the stand-off pipe clamps (line 5, USD 14.00 to 18.00), the marker band clamps (line 8, USD 6.00 to 10.00) and the drain head socket (line 4, USD 22.50 to 24.50) account for the rise from USD 153.50. The main cost drivers are the radar head, the arm and bracket, the covers and the drain head [M2]. R16 is reported against the value-engineering target; savings worth trying are listed in FLG-DEC-001. Radar module, housing and cover prices are indicative.
 
+## N. Tamper resistance and cover profile (PR-018, PR-019)
+
+- **Security fixings.** Eight masonry anchors with snake-eye security nuts and two marker band clamp screws with pin-Torx heads: 10 of the 10 fixings within reach of the sidewalk need a security tool (BOM items 7, 8 and 10) [N1]. PR-018 is met by design.
+- **Cover profile.** The surface covers are a 2 mm hat section 16 mm high, the target for PR-019, and the kit 1.9 model breaks every exposed edge (`python .kit/cad_check.py`) [N2]. Met by design.
+
 ## Results
 
 *Table 4. Requirement status (also written to `docs/04-calcs/results.csv`).*
@@ -181,16 +193,24 @@ The chain is: wait for the next sample, two confirming samples 10 s apart, about
 | R2 | Street depth accuracy | Radar ±6.5 mm (sum ±12.0 mm), module accuracy assumed; ultrasonic variant ±27.0 mm | ±10 mm | Met on paper |
 | R3 | Drain level range | Continuous from 1,250 to 330 mm below the road; wet probe at 310 mm | 50 mm above floor to 330 mm below road, drain-full above | Met on paper |
 | R4 | Drain level accuracy | ±11.0 mm with NTC; ±19.7 mm without | ±20 mm | Met on paper |
-| R6 | Alert latency | 82 s at the 95th percentile; 110 s worst without packet loss | 120 s, 95 % of events | Met on paper (private gateway) |
+| R6 | Alert latency | 82 s at the 95th percentile; 110 s worst without packet loss at SF9; event-mode 95th percentile 123 s at SF11 and 201 s at SF12 | 120 s, 95 % of events | Met on paper (private gateway, SF9 and SF10) |
 | R8 | Energy autonomy | 68 days nominal, 47 days at -20 °C | 5 days at event sampling | Met on paper |
 | R13 | Level datum | Tape and radar dry-background survey; yearly marker check | ±5 mm | Met on paper |
-| R15 | Mounting | 4.99 kg; twist factor 37 with the through-bolt | 40 to 60 mm poles; 5 kg | Met on paper |
+| R15 | Mounting | 4.994 kg (margin 0.006 kg, inside the accuracy of the estimate); twist factor 1.8 on the through-bolt, 1.45 on friction (60 mm pole) | 40 to 60 mm poles; 5 kg | At risk |
 | R16 | Cost | $205.50 FloodGauge-specific; $344.50 with FieldNode | $160 FloodGauge-specific (value-engineering target) | Over the value-engineering target by $45.50 |
 | R5 | Sampling rate | 60 s and 10 s schedule in the sampling logic | 60 s; 10 s in events | Met by design |
 | R11 | Privacy | Levels, status and battery only | No camera or microphone | Met by design |
 | R17 | Open data | JSON or CSV through the gateway | Open format | Met by design |
+| PR-018 | Tamper resistance | 10 of 10 fixings within reach need a security tool | All fixings within reach | Met by design |
+| PR-019 | Cover profile and edges | Hat section 16 mm high, edges broken | 16 mm or less | Met by design |
 
-Counts: 0 not met, 3 at risk, 1 not verifiable at TRL 3, 9 met on paper, 3 met by design; R16 is over the value-engineering target by $45.50. Before the 2026-10-02 decision on R12, R12 was not met.
+Counts: 0 not met, 4 at risk (R7, R9, R14, R15), 1 not verifiable at TRL 3, 8 met on paper, 5 met by design (R5, R11, R17, PR-018, PR-019); R16 is over the value-engineering target by $45.50. Before the 2026-10-02 decision on R12, R12 was not met.
+
+## Changes in v0.7 (kit 1.9.1 upgrade, 2026-10-31)
+
+- `sizing.py` rerun on the kit 1.9 model (`components("A")`: 171 parts with every bolt, nut, washer and plug). Masses and cable runs are measured on it: mass on the pole 4.994 kg (margin 0.006 kg), street cable run 2,619 mm, drain cable run 4,310 mm. All other figures are unchanged.
+- Requirements are cited by their R numbers, which are the "Was" numbers of PR-001 to PR-017 in FLG-PRS-001; PR-018 and PR-019 are new (section N).
+- The independent review in FLG-STM-001 re-derived the headline figures. It refuted the through-bolt couple (922 N·m, factor 37): the bolt bends, so the factor is 1.8 with class A4-80 (section H, FLG-DDR-004 F2). It also showed that the brace load used the Euler formula where it does not apply (Johnson and pin bearing now used), that R6 holds only to SF10 (F4), and that the 6 g mass margin is inside the estimate's accuracy (R15 is now at risk). Version 0.6 text on the section M line prices and the 150 mm band was out of date and is corrected.
 
 ## Changes in v0.6 (approved follow-ups, 2026-10-02)
 
